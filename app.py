@@ -5,22 +5,21 @@ from datetime import datetime
 # 1. SUA CONFIGURAÇÃO BASE (TOPO ZERO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SUA BASE FUNCIONAL + AJUSTE DE PROXIMIDADE "COLADA"
+# 2. CSS: MATANDO O ESPAÇO ENTRE COLUNAS PARA COLAR AS SETAS
 st.markdown("""
     <style>
-    /* SEU FIX DO TOPO (MANTIDO) */
+    /* FIX DO TOPO (MANTIDO) */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 900px !important; /* REDUZIDO PARA COLAR AS SETAS */
+        max-width: 800px !important; /* CONTAINER MAIS JUSTO */
     }
-    [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
-        padding-top: 0rem !important;
-    }
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.block-container {
-        padding-top: 0rem !important;
+    
+    /* ELIMINA O ESPAÇO (GAP) ENTRE AS COLUNAS */
+    div[data-testid="stHorizontalBlock"] {
+        gap: 0rem !important;
     }
 
     /* ESTÉTICA DARK */
@@ -36,20 +35,20 @@ st.markdown("""
         letter-spacing: 2px;
         color: #444;
         margin-top: 0px !important;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         font-size: 10px;
         text-transform: uppercase;
         text-align: center;
     }
 
-    /* IMAGEM CENTRALIZADA */
+    /* IMAGEM CENTRALIZADA E JUSTA */
     [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
     }
     
     img {
-        max-height: 62vh !important;
+        max-height: 60vh !important;
         width: auto !important;
         border-radius: 4px;
         border: 1px solid #1A1A1A;
@@ -65,12 +64,12 @@ st.markdown("""
         color: #E0E0E0;
         margin-top: 15px;
         text-align: center;
-        max-width: 600px;
+        max-width: 550px;
         margin-left: auto;
         margin-right: auto;
     }
 
-    /* BOTÕES LATERAIS CIRCULARES */
+    /* BOTÕES LATERAIS CIRCULARES COLADOS */
     div.stButton > button {
         background-color: transparent !important;
         color: #555 !important;
@@ -80,16 +79,18 @@ st.markdown("""
         font-size: 22px !important;
         transition: 0.2s;
         border-radius: 50% !important;
-        margin-top: 180px;
+        margin-top: 180px; /* ALINHAMENTO COM O MEIO */
         display: block;
     }
     
-    /* XEQUE-MATE NA DISTÂNCIA: Cola as setas na imagem */
+    /* ALINHAMENTO DAS COLUNAS PARA ENCOSTAR NO MEIO */
     [data-testid="column"]:nth-of-type(1) [data-testid="stVerticalBlock"] {
         align-items: flex-end !important;
+        padding-right: 5px !important; /* Pequeno ajuste de respiro */
     }
     [data-testid="column"]:nth-of-type(3) [data-testid="stVerticalBlock"] {
         align-items: flex-start !important;
+        padding-left: 5px !important;
     }
 
     div.stButton > button:hover {
@@ -97,7 +98,6 @@ st.markdown("""
         color: #D4AF37;
     }
 
-    /* Limpeza de UI */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
@@ -107,7 +107,6 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título
 st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
@@ -122,8 +121,8 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # PROPORÇÃO COMPACTA: [1 lateral, 5 centro, 1 lateral]
-    c_ant, c_mid, c_prox = st.columns([1, 5, 1], gap="small")
+    # PROPORÇÃO QUE COLOCA AS SETAS NAS BORDAS DA IMAGEM
+    c_ant, c_mid, c_prox = st.columns([1, 6, 1])
     
     with c_ant:
         if st.button("‹", key="prev"):
@@ -141,7 +140,7 @@ else:
             st.session_state.idx = (st.session_state.idx + 1) % total
             st.rerun()
 
-# Gestão Oculta
+# GESTÃO
 st.write("<br>"*2, unsafe_allow_html=True)
 with st.expander("DADOS E PROPRIEDADES"):
     c1, c2 = st.columns(2)
