@@ -2,19 +2,19 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (TOPO ZERO)
+# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDA)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO
+# 2. CSS: SEU FIX DE TOPO + ALINHAMENTO MILIMÉTRICO
 st.markdown("""
     <style>
-    /* --- SEU FIX DO TOPO (MANTIDO) --- */
+    /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 1200px !important;
+        max-width: 1100px !important;
     }
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
@@ -23,7 +23,7 @@ st.markdown("""
         padding-top: 0rem !important;
     }
 
-    /* --- ESTÉTICA DARK --- */
+    /* ESTÉTICA DARK */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -40,15 +40,17 @@ st.markdown("""
         font-size: 11px;
         text-transform: uppercase;
         text-align: center;
+        width: 100%;
     }
 
-    /* --- CENTRALIZAÇÃO REAL DO TABULEIRO --- */
-    /* Esse comando força a coluna que contém a imagem a alinhar tudo ao centro */
-    [data-testid="column"] {
+    /* --- TRAVA DE CENTRALIZAÇÃO DO TABULEIRO --- */
+    /* Isso ataca o container da imagem e força o centro absoluto */
+    [data-testid="stImage"] {
         display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
         justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        text-align: center !important;
     }
     
     img {
@@ -57,9 +59,10 @@ st.markdown("""
         border-radius: 4px;
         border: 1px solid #222;
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+        margin: 0 auto !important;
     }
 
-    /* BOTÕES CENTRALIZADOS */
+    /* BOTÕES CIRCULARES CENTRALIZADOS ABAIXO */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -78,7 +81,6 @@ st.markdown("""
         color: #D4AF37;
     }
 
-    /* CAIXA DE ANÁLISE CENTRALIZADA */
     .insight-box {
         background-color: #111;
         padding: 20px;
@@ -116,14 +118,11 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # 1. TABULEIRO CENTRALIZADO
-    # Usamos uma coluna central para garantir que ele fique no meio
-    _, col_img, _ = st.columns([1, 2, 1])
-    with col_img:
-        st.image(path_img)
+    # 1. TABULEIRO (FORA DE COLUNAS PARA NÃO DESALINHAR)
+    st.image(path_img)
 
     # 2. CONTROLES (SETAS) ABAIXO
-    # Proporção simétrica para os botões ficarem no centro embaixo da imagem
+    # Proporção simétrica para os botões ficarem no centro exato
     _, b1, b2, _ = st.columns([4.2, 0.8, 0.8, 4.2])
     with b1:
         if st.button("‹", key="prev"):
