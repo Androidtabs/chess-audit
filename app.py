@@ -3,7 +3,7 @@ import os
 import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (SUA VERSÃO PREFERIDA)
+# 1. CONFIGURAÇÃO BASE (SUA VERSÃO DE OURO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
 def get_image_base64(path):
@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: SEPARANDO AS SETAS (CÍRCULOS) DOS BOTÕES DE DADOS (RETÂNGULOS)
+# 2. CSS: SEPARAÇÃO TOTAL ENTRE NAVEGAÇÃO E GESTÃO
 st.markdown("""
     <style>
     /* FIX DO TOPO */
@@ -38,36 +38,31 @@ st.markdown("""
     .centered-image-container { display: flex; justify-content: center; margin-bottom: 20px; }
     .centered-image-container img { max-height: 58vh; border: 1px solid #222; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
     
-    /* --- SETAS LÁ DE CIMA (MANTIDAS CIRCULARES) --- */
-    /* Usamos o seletor nth-child para garantir que só as setas fiquem redondas */
-    .main div.stButton > button { 
-        background: transparent; 
-        color: #666; 
-        border: 1px solid #222; 
-        height: 55px; 
-        width: 55px; 
+    /* --- ESTILO DAS SETAS (CÍRCULOS) --- */
+    div.stButton > button { 
+        background: transparent !important; 
+        color: #666 !important; 
+        border: 1px solid #222 !important; 
+        height: 55px !important; 
+        width: 55px !important; 
         border-radius: 50% !important; 
-        display: block; 
-        margin: 0 auto !important; 
+        font-size: 22px !important;
+        transition: 0.2s;
     }
-    .main div.stButton > button:hover { border-color: #D4AF37; color: #D4AF37; }
+    div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
 
-    /* --- FIX DOS BOTÕES DE GESTÃO (RETÂNGULOS NORMAIS) --- */
-    /* Isso força qualquer botão dentro do expander a ser retangular e largo */
+    /* --- FIX EXCLUSIVO PARA O EXPANDER (BOTÕES DE GESTÃO) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
         height: 45px !important;
-        padding: 10px !important;
         font-size: 14px !important;
         background-color: #1A1A1A !important;
-        border: 1px solid #333 !important;
-        color: #EEE !important;
-        font-weight: bold !important;
         text-transform: uppercase !important;
     }
 
     .insight-box { background: #111; padding: 15px; border-bottom: 2px solid #D4AF37; text-align: center; max-width: 600px; margin: 10px auto 15px auto; }
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -80,7 +75,6 @@ st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
-# Pega nomes para a lista dinâmica
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -94,12 +88,16 @@ if imgs:
     img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
 
-    # SETAS (CÍRCULOS)
+    # --- NAVEGAÇÃO CENTRALIZADA (RESTAURADA) ---
     col1, col2, col3, col4 = st.columns([1, 0.08, 0.08, 1])
     with col2:
-        if st.button("‹", key="prev"): st.session_state.idx = (st.session_state.idx - 1) % len(imgs); st.rerun()
+        if st.button("‹", key="prev"): 
+            st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
+            st.rerun()
     with col3:
-        if st.button("›", key="next"): st.session_state.idx = (st.session_state.idx + 1) % len(imgs); st.rerun()
+        if st.button("›", key="next"): 
+            st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
+            st.rerun()
 
     path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
     if os.path.exists(path_txt):
@@ -109,32 +107,22 @@ if imgs:
 st.write("")
 with st.expander("⚙️ GESTÃO DE DADOS (CADASTRAR ABERTURAS)"):
     t1, t2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR ATUAL"])
-    
     with t1:
         opcoes = ["-- Selecione uma existente --"] + aberturas_existentes + ["[ + CADASTRAR NOVA ]"]
         escolha = st.selectbox("Escolha a Abertura do Adversário:", opcoes)
-        
-        nome_final = ""
-        if escolha == "[ + CADASTRAR NOVA ]":
-            nome_final = st.text_input("Digite o Nome da Nova Abertura:", placeholder="Ex: Defesa Francesa")
-        elif escolha != "-- Selecione uma existente --":
-            nome_final = escolha
-
-        n_f = st.file_uploader("Upload da Posição:", type=["jpg", "png", "jpeg"])
-        n_t = st.text_area("Insight da Engine / Estudo:")
-        
+        nome_final = st.text_input("Nome da Nova Abertura:") if escolha == "[ + CADASTRAR NOVA ]" else escolha
+        n_f = st.file_uploader("Imagem:", type=["jpg", "png", "jpeg"])
+        n_t = st.text_area("Insight:")
         if st.button("SALVAR REGISTRO"): 
-            if n_f and n_t and nome_final:
+            if n_f and n_t and nome_final and nome_final != "-- Selecione uma existente --":
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 nome_limpo = nome_final.replace(" ", "-").strip()
                 base = os.path.join(IMG_DIR, f"{nome_limpo}_{ts}")
                 with open(f"{base}.jpg", "wb") as f: f.write(n_f.getbuffer())
                 with open(f"{base}.txt", "w") as f: f.write(n_t)
                 st.rerun()
-
     with t2:
         if imgs:
-            st.info(f"Editando: {nome_exibicao}")
             edt_t = st.text_area("Alterar Insight:", value="", key="edit_area")
             c1, c2 = st.columns(2)
             with c1:
