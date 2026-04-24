@@ -6,12 +6,12 @@ from datetime import datetime
 # 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDO INTEGRALMENTE)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# Função para converter imagem em base64 (Garante centralização total via HTML)
+# Função para converter imagem em base64
 def get_image_base64(path):
     with open(path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO DO TABULEIRO
+# 2. CSS: SEU FIX DE TOPO + TRAVA DE EIXO PARA AS SETAS
 st.markdown("""
     <style>
     /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
@@ -65,7 +65,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* BOTÕES CENTRALIZADOS ABAIXO */
+    /* BOTÕES CENTRALIZADOS E TRAVADOS NO EIXO */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -79,6 +79,12 @@ st.markdown("""
         margin: 0 auto !important;
     }
     
+    /* ESTE AJUSTE GARANTE QUE AS COLUNAS NÃO PASSEM DA LARGURA DA IMAGEM */
+    div[data-testid="stHorizontalBlock"] {
+        max-width: 1100px !important;
+        margin: 0 auto !important;
+    }
+
     div.stButton > button:hover {
         border-color: #D4AF37;
         color: #D4AF37;
@@ -106,7 +112,6 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título
 st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
@@ -121,7 +126,7 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # --- 1. TABULEIRO (VIA HTML PARA CENTRALIZAÇÃO TOTAL) ---
+    # --- 1. TABULEIRO ---
     img_base64 = get_image_base64(path_img)
     st.markdown(
         f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>',
@@ -129,6 +134,7 @@ else:
     )
 
     # --- 2. CONTROLES (SETAS) ABAIXO ---
+    # Agora travados no mesmo eixo de 1100px
     _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
     with b1:
         if st.button("‹", key="prev"):
