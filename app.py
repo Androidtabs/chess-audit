@@ -12,20 +12,26 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: EQUILÍBRIO ENTRE TOPO COLADO E VISIBILIDADE
+# 2. CSS: ATAQUE TOTAL AO ESPAÇO SUPERIOR
 st.markdown("""
     <style>
-    /* --- REMOVE O HEADER E ENCOSTA NO TOPO --- */
+    /* 1. Esconde o Header original do Streamlit */
     [data-testid="stHeader"] {display: none !important;}
     
+    /* 2. Zera o espaçamento do container principal e puxa para cima */
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        margin-top: -40px !important; /* Puxa para cima sem sumir com tudo */
+        margin-top: -75px !important; /* Aumentado para zerar o vácuo */
         max-width: 1100px !important;
     }
 
-    /* ESTÉTICA DARK */
+    /* 3. Remove o padding extra que o Streamlit coloca na visualização do App */
+    [data-testid="stAppViewContainer"] {
+        padding-top: 0rem !important;
+    }
+
+    /* ESTÉTICA DARK MANTIDA */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -75,7 +81,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SUAS SETAS CIRCULARES (BLINDADAS) --- */
+    /* --- SETAS DE NAVEGAÇÃO CIRCULARES (BLINDADAS) --- */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -93,7 +99,7 @@ st.markdown("""
         color: #D4AF37 !important;
     }
 
-    /* --- BOTÕES DE GESTÃO (VOLTAM A SER RETÂNGULOS) --- */
+    /* --- BOTÕES DA GESTÃO (RETANGULARES) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
@@ -124,7 +130,6 @@ st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
-# Carrega aberturas para a lista
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -138,7 +143,7 @@ if imgs:
     img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
 
-    # NAVEGAÇÃO CENTRALIZADA
+    # Navegação
     _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
     with col2:
         if st.button("‹", key="prev"):
