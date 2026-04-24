@@ -12,22 +12,17 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: MATANDO O ESPAÇO DO TOPO + SETAS PERFEITAS
+# 2. CSS: EQUILÍBRIO ENTRE TOPO COLADO E VISIBILIDADE
 st.markdown("""
     <style>
-    /* --- REMOVE O ESPAÇO EM BRANCO DO TOPO --- */
+    /* --- REMOVE O HEADER E ENCOSTA NO TOPO --- */
     [data-testid="stHeader"] {display: none !important;}
     
-    /* Zera o padding do container principal */
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        margin-top: -60px !important; /* Puxa o título totalmente para o topo */
-    }
-
-    /* Esconde o elemento de ancoragem que o Streamlit cria no topo */
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.block-container > div:nth-child(1) {
-        display: none !important;
+        margin-top: -40px !important; /* Puxa para cima sem sumir com tudo */
+        max-width: 1100px !important;
     }
 
     /* ESTÉTICA DARK */
@@ -38,13 +33,12 @@ st.markdown("""
     }
 
     .header-text {
-        font-family: 'Inter', sans-serif;
-        color: #444;
-        margin-bottom: 5px;
         font-size: 11px;
+        color: #444;
         text-transform: uppercase;
         text-align: center;
         letter-spacing: 2px;
+        margin-bottom: 10px;
     }
 
     .record-counter {
@@ -81,9 +75,8 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SETAS DE NAVEGAÇÃO (CÍRCULOS) --- */
-    /* Seletor ultra-específico para não quebrar os botões de baixo */
-    .main [data-testid="column"] div.stButton > button {
+    /* --- SUAS SETAS CIRCULARES (BLINDADAS) --- */
+    div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
         border: 1px solid #222 !important;
@@ -95,18 +88,17 @@ st.markdown("""
         margin: 0 auto !important;
         transition: 0.2s;
     }
-    .main [data-testid="column"] div.stButton > button:hover {
+    div.stButton > button:hover {
         border-color: #D4AF37 !important;
         color: #D4AF37 !important;
     }
 
-    /* --- BOTÕES DA GESTÃO (RETÂNGULOS) --- */
+    /* --- BOTÕES DE GESTÃO (VOLTAM A SER RETÂNGULOS) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
         height: 45px !important;
         background-color: #1A1A1A !important;
-        font-size: 14px !important;
         text-transform: uppercase !important;
     }
 
@@ -126,13 +118,13 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# O Título agora vai ficar colado lá em cima
+# Título
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
-# Puxa lista de aberturas
+# Carrega aberturas para a lista
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -143,8 +135,8 @@ if imgs:
     st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
-    img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
-    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
+    img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
+    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
 
     # NAVEGAÇÃO CENTRALIZADA
     _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
