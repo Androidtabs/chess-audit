@@ -93,3 +93,75 @@ st.markdown("""
     }
 
     div.stButton > button:hover {
+        border-color: #D4AF37;
+        color: #D4AF37;
+    }
+
+    /* Limpeza de UI */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+
+IMG_DIR = "jogadas"
+if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
+if 'idx' not in st.session_state: st.session_state.idx = 0
+
+# Título
+st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
+
+imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
+imgs.sort(reverse=True)
+
+if not imgs:
+    st.info("Aguardando input...")
+else:
+    if st.session_state.idx >= len(imgs): st.session_state.idx = 0
+    total = len(imgs)
+    curr = imgs[st.session_state.idx]
+    path_img = os.path.join(IMG_DIR, curr)
+    path_txt = path_img.replace(".jpg", ".txt")
+
+    # PROPORÇÃO MANTIDA
+    c_ant, c_mid, c_prox = st.columns([1.5, 2, 1.5])
+    
+    with c_ant:
+        if st.button("‹", key="prev"):
+            st.session_state.idx = (st.session_state.idx - 1) % total
+            st.rerun()
+
+    with c_mid:
+        st.image(path_img, use_container_width=True)
+        if os.path.exists(path_txt):
+            with open(path_txt, "r") as f: texto = f.read()
+            st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
+
+    with c_prox:
+        if st.button("›", key="next"):
+            st.session_state.idx = (st.session_state.idx + 1) % total
+            st.rerun()
+
+# Gestão Oculta
+st.write("<br>"*2, unsafe_allow_html=True)
+with st.expander("DADOS E PROPRIEDADES"):
+    c1, c2 = st.columns(2)
+    with c1:
+        f = st.file_uploader("Novo Registro", type=["jpg", "png", "jpeg"])
+        c = st.text_area("Insight da Engine:")
+        if st.button("Salvar"):
+            if f and c:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                p = os.path.join(IMG_DIR, f"{ts}.jpg")
+                with open(p, "wb") as file: file.write(f.getbuffer())
+                with open(p.replace(".jpg", ".txt"), "w") as file: file.write(c)
+                st.rerun()
+    with c2:
+        if imgs:
+            novo = st.text_area("Editar Texto:", value=texto if 'texto' in locals() else "")
+            if st.button("Atualizar"):
+                with open(path_txt, "w") as file: file.write(novo)
+                st.rerun()
+            if st.button("🗑️ Deletar"):
+                os.remove(path_img); os.remove(path_txt)
+                st.session_state.idx = 0
+                st.rerun()
