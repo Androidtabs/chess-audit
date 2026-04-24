@@ -2,19 +2,19 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. BASE DE TOPO ZERO
+# 1. SUA CONFIGURAÇÃO BASE (TOPO ZERO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SIMETRIA E COMPACTAÇÃO
+# 2. CSS: SUA BASE FUNCIONAL + AJUSTE DE SIMETRIA TOTAL
 st.markdown("""
     <style>
-    /* FIX DO TOPO */
+    /* SEU FIX DO TOPO (MANTIDO) */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 1000px !important; /* REDUZIDO PARA APROXIMAR OS BOTÕES */
+        max-width: 1100px !important;
     }
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
@@ -23,7 +23,7 @@ st.markdown("""
         padding-top: 0rem !important;
     }
 
-    /* ESTÉTICA */
+    /* ESTÉTICA DARK */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -36,20 +36,20 @@ st.markdown("""
         letter-spacing: 2px;
         color: #444;
         margin-top: 0px !important;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         font-size: 10px;
         text-transform: uppercase;
         text-align: center;
     }
 
-    /* CENTRALIZAÇÃO FORÇADA DO CONTEÚDO */
+    /* CENTRALIZAÇÃO DO TABULEIRO */
     [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
     }
     
     img {
-        max-height: 60vh !important;
+        max-height: 65vh !important;
         width: auto !important;
         border-radius: 4px;
         border: 1px solid #1A1A1A;
@@ -65,34 +65,41 @@ st.markdown("""
         color: #E0E0E0;
         margin-top: 15px;
         text-align: center;
-        max-width: 600px;
+        max-width: 800px;
         margin-left: auto;
         margin-right: auto;
     }
 
-    /* BOTÕES LATERAIS CIRCULARES E ALINHADOS */
+    /* BOTÕES LATERAIS: FORÇANDO SIMETRIA DE DISTÂNCIA */
     div.stButton > button {
         background-color: transparent !important;
         color: #555 !important;
         border: 1px solid #1A1A1A !important;
-        height: 60px !important;
-        width: 60px !important;
-        font-size: 22px !important;
+        height: 70px !important;
+        width: 70px !important;
+        font-size: 25px !important;
         transition: 0.2s;
         border-radius: 50% !important;
-        margin-top: 160px; /* ALINHADO AO MEIO DA IMAGEM */
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
+        margin-top: 200px; /* Alinhamento vertical */
+    }
+
+    /* Alinha o botão da esquerda para a direita (encosta na imagem) */
+    [data-testid="column"]:nth-child(1) div.stButton {
+        display: flex;
+        justify-content: flex-end; 
+    }
+
+    /* Alinha o botão da direita para a esquerda (encosta na imagem) */
+    [data-testid="column"]:nth-child(3) div.stButton {
+        display: flex;
+        justify-content: flex-start;
     }
     
     div.stButton > button:hover {
         border-color: #D4AF37;
         color: #D4AF37;
-        background-color: rgba(212, 175, 55, 0.05) !important;
     }
 
-    #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -115,7 +122,7 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # PROPORÇÃO AJUSTADA PARA APROXIMAR OS BOTÕES DO TABULEIRO
+    # GRID SIMÉTRICO: [Lateral, Centro, Lateral]
     c_ant, c_mid, c_prox = st.columns([1, 4, 1])
     
     with c_ant:
