@@ -2,77 +2,83 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# Configuração de página para ocupar o máximo de largura possível
-st.set_page_config(page_title="Audit", layout="wide", initial_sidebar_state="collapsed")
+# Configuração de Página: Centralizado para proteger a proporção da imagem
+st.set_page_config(page_title="Audit", layout="centered", initial_sidebar_state="collapsed")
 
-# CSS AGRESSIVO: Reset de topo e layout de botões laterais
+# CSS: Design de Interface de Alta Performance
 st.markdown("""
     <style>
-    /* 1. Zerar o Topo Absolutamente */
+    /* 1. Reset Total de Topo e Margens */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-        margin-top: -45px !important; /* Puxa o conteúdo para o limite superior */
+        max-width: 650px !important; /* Tamanho ideal para não distorcer */
+        margin-top: -40px !important;
     }
-
-    /* 2. Estética Deep Dark & Gold */
     html, body, [class*="css"] {
-        background-color: #000000;
-        color: #E0E0E0;
+        background-color: #080808;
+        color: #B0B0B0;
         font-family: 'Inter', sans-serif;
     }
 
-    /* 3. Título Discreto */
-    .header-label {
-        font-size: 9px;
-        letter-spacing: 3px;
-        color: #444;
-        text-transform: uppercase;
-        margin-bottom: 10px;
+    /* 2. Título "Minimal" */
+    .system-label {
         text-align: center;
+        font-size: 10px;
+        letter-spacing: 5px;
+        color: #333;
+        text-transform: uppercase;
+        margin-bottom: 20px;
     }
 
-    /* 4. Imagem Controlada (Evita Scroll) */
+    /* 3. O Tabuleiro (Sem distorção) */
     .stImage img {
-        border: 1px solid #222;
-        border-radius: 4px;
-        max-height: 50vh !important; /* Imagem ocupa metade da altura da tela */
-        width: auto;
-        margin: 0 auto;
-        display: block;
+        border-radius: 8px;
+        border: 1px solid #1A1A1A;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+        max-height: 450px !important; /* Protege contra scroll */
+        object-fit: contain !important;
     }
 
-    /* 5. Botões Laterais Estilizados */
+    /* 4. Caixa de Insight (Design 'Dossier') */
+    .analysis-container {
+        background-color: #0F0F0F;
+        padding: 25px;
+        border-radius: 8px;
+        border: 1px solid #1A1A1A;
+        border-left: 3px solid #D4AF37;
+        margin-top: 20px;
+    }
+    .analysis-header {
+        font-size: 10px;
+        color: #D4AF37;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+    .analysis-body {
+        font-size: 16px;
+        color: #E0E0E0;
+        line-height: 1.6;
+    }
+
+    /* 5. Navegação nas Laterais (Sem esticar) */
     div.stButton > button {
-        background-color: rgba(255, 255, 255, 0.03) !important;
+        background-color: transparent !important;
         border: 1px solid #1A1A1A !important;
-        color: #555 !important;
-        height: 50vh !important; /* Acompanha a altura da imagem */
+        color: #444 !important;
+        height: 450px !important; /* Acompanha a imagem */
         width: 100% !important;
-        font-size: 30px !important;
+        font-size: 20px !important;
         transition: 0.3s;
+        border-radius: 8px;
     }
     div.stButton > button:hover {
         border-color: #D4AF37 !important;
         color: #D4AF37 !important;
-        background-color: rgba(212, 175, 55, 0.05) !important;
+        background-color: #111 !important;
     }
 
-    /* 6. Caixa de Insight Moderna */
-    .insight-card {
-        background-color: #0A0A0A;
-        padding: 15px 25px;
-        border-top: 1px solid #1A1A1A;
-        border-bottom: 2px solid #D4AF37;
-        margin-top: 10px;
-        font-size: 15px;
-        line-height: 1.5;
-        border-radius: 0 0 4px 4px;
-    }
-
-    /* Esconde o rodapé */
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -81,62 +87,69 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-st.markdown('<p class="header-label">STRATEGY PROTOCOL // ESTUDO DE ABERTURAS</p>', unsafe_allow_html=True)
+st.markdown('<p class="system-label">Strategist Protocol // Opening Audit</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort(reverse=True)
 
 if not imgs:
-    st.info("SISTEMA VAZIO // AGUARDANDO DADOS")
+    st.info("SISTEMA AGUARDANDO DADOS...")
 else:
     if st.session_state.idx >= len(imgs): st.session_state.idx = 0
     curr_img = imgs[st.session_state.idx]
     p_img = os.path.join(IMG_DIR, curr_img)
     p_txt = p_img.replace(".jpg", ".txt")
 
-    # LAYOUT DE 3 COLUNAS: [ BOTÃO ] [ IMAGEM ] [ BOTÃO ]
-    c_prev, c_main, c_next = st.columns([1, 10, 1])
+    # Layout: [Botão] [Imagem] [Botão]
+    # Usamos uma proporção que não "estica" o centro
+    c_prev, c_main, c_next = st.columns([1, 8, 1])
     
     with c_prev:
-        st.write("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        st.write("<br>"*5, unsafe_allow_html=True)
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
             st.rerun()
 
     with c_main:
+        # A imagem aqui NÃO vai esticar pois o layout é centralizado (650px)
         st.image(p_img, use_container_width=True)
+        
         if os.path.exists(p_txt):
             with open(p_txt, "r") as f: texto = f.read()
-            st.markdown(f'<div class="insight-card">{texto}</div>', unsafe_allow_html=True)
+            st.markdown(f'''
+                <div class="analysis-container">
+                    <div class="analysis-header">SYSTEM ANALYSIS // ID_{curr_img[:8]}</div>
+                    <div class="analysis-body">{texto}</div>
+                </div>
+            ''', unsafe_allow_html=True)
 
     with c_next:
-        st.write("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        st.write("<br>"*5, unsafe_allow_html=True)
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
             st.rerun()
 
-    st.markdown(f"<p style='text-align:center; color:#222; font-size:9px; margin-top:15px;'>ENTRY {st.session_state.idx + 1} / {len(imgs)}</p>", unsafe_allow_html=True)
-
-# GESTÃO (Final da página)
+# Espaço e Gestão discreta
+st.write("<br>"*2, unsafe_allow_html=True)
 with st.expander("TERMINAL DE DADOS"):
     c1, c2 = st.columns(2)
     with c1:
-        f = st.file_uploader("Novo Registro", type=["jpg", "png", "jpeg"])
-        c = st.text_area("Análise:")
-        if st.button("Salvar"):
+        f = st.file_uploader("Upload", type=["jpg", "png", "jpeg"])
+        c = st.text_area("Insight:")
+        if st.button("Gravar Registro"):
             if f and c:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                path = os.path.join(IMG_DIR, f"{ts}.jpg")
-                with open(path, "wb") as file: file.write(f.getbuffer())
-                with open(path.replace(".jpg", ".txt"), "w") as file: file.write(c)
+                p = os.path.join(IMG_DIR, f"{ts}.jpg")
+                with open(p, "wb") as file: file.write(f.getbuffer())
+                with open(p.replace(".jpg", ".txt"), "w") as file: file.write(c)
                 st.rerun()
     with c2:
         if imgs:
-            novo = st.text_area("Editar Atual:", value=texto if 'texto' in locals() else "")
+            novo = st.text_area("Editar:", value=texto if 'texto' in locals() else "")
             if st.button("Atualizar"):
                 with open(p_txt, "w") as f: f.write(novo)
                 st.rerun()
-            if st.button("🗑️ Eliminar"):
+            if st.button("Eliminar"):
                 os.remove(p_img); os.remove(p_txt)
                 st.session_state.idx = 0
                 st.rerun()
