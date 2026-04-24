@@ -12,10 +12,10 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: TOPO PERFEITO + AJUSTE DE ESPAÇAMENTO (O "ENTER")
+# 2. CSS: TOPO PERFEITO + CENTRALIZAÇÃO DE NAVEGAÇÃO
 st.markdown("""
     <style>
-    /* --- SEU FIX DO TOPO (MANTIDO) --- */
+    /* --- SEU FIX DO TOPO --- */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
@@ -69,7 +69,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* SETAS DE NAVEGAÇÃO */
+    /* SETAS DE NAVEGAÇÃO - MÁXIMA CENTRALIZAÇÃO */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -83,9 +83,8 @@ st.markdown("""
     }
     div.stButton > button:hover { border-color: #D4AF37; color: #D4AF37; }
 
-    /* --- AJUSTE DO "ENTER" (ESPAÇAMENTO) --- */
     .stExpander {
-        margin-top: 10px !important; /* Devolve um pouco de espaço para não colar */
+        margin-top: 10px !important;
         border: 1px solid #1A1A1A !important;
     }
 
@@ -107,7 +106,7 @@ st.markdown("""
         font-size: 15px;
         color: #E0E0E0;
         margin-top: 10px;
-        margin-bottom: 15px; /* Espaço extra abaixo da legenda */
+        margin-bottom: 15px;
         text-align: center;
         max-width: 600px;
         margin-left: auto;
@@ -142,7 +141,8 @@ if imgs:
     img_base64 = get_image_base64(path_img)
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
 
-    _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
+    # AJUSTE DE COLUNAS: Setas mais próximas [1, 0.08, 0.08, 1]
+    _, b1, b2, _ = st.columns([1, 0.08, 0.08, 1])
     with b1:
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % total
@@ -156,9 +156,8 @@ if imgs:
         with open(path_txt, "r") as f: texto_atual = f.read()
         st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto_atual}</div>', unsafe_allow_html=True)
 
-# GESTÃO COM RESPIRO
-st.write("") # Um pequeno enter em Python
-with st.expander("⚙️ GESTÃO DE DADOS (ADICIONAR / REMOVER / EDITAR)"):
+st.write("") 
+with st.expander("⚙️ GESTÃO DE DADOS"):
     tab1, tab2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR OU REMOVER ATUAL"])
     
     with tab1:
@@ -174,7 +173,7 @@ with st.expander("⚙️ GESTÃO DE DADOS (ADICIONAR / REMOVER / EDITAR)"):
     
     with tab2:
         if imgs:
-            st.warning(f"Você está editando o Registro {st.session_state.idx + 1}")
+            st.warning(f"Editando Registro {st.session_state.idx + 1}")
             novo_texto = st.text_area("Alterar Texto:", value=texto_atual, key="edit_texto")
             c_e, c_d = st.columns(2)
             with c_e:
@@ -182,7 +181,7 @@ with st.expander("⚙️ GESTÃO DE DADOS (ADICIONAR / REMOVER / EDITAR)"):
                     with open(path_txt, "w") as file: file.write(novo_texto)
                     st.rerun()
             with c_d:
-                if st.button("🗑️ DELETAR ESTE REGISTRO", key="btn_delete"):
+                if st.button("🗑️ DELETAR REGISTRO", key="btn_delete"):
                     os.remove(path_img)
                     if os.path.exists(path_txt): os.remove(path_txt)
                     st.session_state.idx = 0
