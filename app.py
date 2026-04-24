@@ -12,21 +12,21 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: ATAQUE TOTAL AO VÁCUO DO TOPO
+# 2. CSS: ATAQUE MULTICAMADAS AO TOPO
 st.markdown("""
     <style>
-    /* 1. MATA O HEADER E O ESPAÇAMENTO DO TOPO */
+    /* 1. ESCONDER O HEADER */
     [data-testid="stHeader"] {display: none !important;}
     
-    /* 2. ZERA O PADDING DO APP CONTAINER */
-    [data-testid="stAppViewContainer"] {
-        padding-top: 0rem !important;
-    }
-
-    /* 3. PUXA O CONTEÚDO PARA CIMA (MÁXIMA EFICIÊNCIA) */
+    /* 2. ZERAR O ESPAÇAMENTO DE TODAS AS CAMADAS DO TOPO */
+    [data-testid="stAppViewContainer"] { padding-top: 0rem !important; }
+    [data-testid="stAppViewBlockContainer"] { padding-top: 0rem !important; }
+    
+    /* 3. PUXA O CONTEÚDO PARA CIMA COM FORÇA (Ajuste para -100px se necessário) */
     .main .block-container {
         padding-top: 0rem !important;
-        margin-top: -85px !important; /* Valor exato para colar o título no topo */
+        padding-bottom: 0rem !important;
+        margin-top: -100px !important; 
         max-width: 1100px !important;
     }
 
@@ -66,7 +66,6 @@ st.markdown("""
         font-weight: bold;
     }
 
-    /* TABULEIRO CENTRALIZADO */
     .centered-image-container {
         display: flex !important;
         justify-content: center !important;
@@ -81,7 +80,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SUAS SETAS CIRCULARES ORIGINAIS (CONSERVADAS) --- */
+    /* --- SUAS SETAS CIRCULARES ORIGINAIS --- */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -99,7 +98,7 @@ st.markdown("""
         color: #D4AF37 !important;
     }
 
-    /* --- BOTÕES DA GESTÃO (VOLTAM A SER RETÂNGULOS) --- */
+    /* --- BOTÕES DA GESTÃO (RETÂNGULOS) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
@@ -124,13 +123,13 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título colado no topo
+# Título colado
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
-# Puxa lista de aberturas
+# Carregar aberturas cadastradas
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -141,10 +140,10 @@ if imgs:
     st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
-    img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
-    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
+    img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
+    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
 
-    # NAVEGAÇÃO CENTRALIZADA (COMO VOCÊ GOSTA)
+    # NAVEGAÇÃO
     _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
     with col2:
         if st.button("‹", key="prev"):
