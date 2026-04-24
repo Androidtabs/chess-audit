@@ -22,7 +22,6 @@ st.markdown("""
     .header-text { font-size: 11px; color: #444; text-transform: uppercase; text-align: center; letter-spacing: 2px; }
     .record-counter { color: #D4AF37; font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 5px; }
     
-    /* ESTILO DA TAG DE ABERTURA */
     .opening-tag {
         background-color: #1A1A1A;
         color: #D4AF37;
@@ -51,16 +50,16 @@ if 'idx' not in st.session_state: st.session_state.idx = 0
 
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
-# Lógica de leitura de arquivos
+# Lógica de leitura e extração de nomes únicos para a lista
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
+
+# Pega todos os nomes de aberturas já cadastrados para criar a lista dinâmica
+aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
     if st.session_state.idx >= len(imgs): st.session_state.idx = 0
     curr = imgs[st.session_state.idx]
-    
-    # Extrai o nome da abertura removendo o timestamp final
-    # Ex: Siciliana-Taimanov_20260424.jpg -> Siciliana Taimanov
     nome_exibicao = curr.split("_")[0].replace("-", " ")
     
     st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
@@ -85,32 +84,28 @@ with st.expander("⚙️ GESTÃO DE DADOS (CADASTRAR ABERTURAS)"):
     t1, t2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR ATUAL"])
     
     with t1:
-        # CAMPO DE CADASTRO QUE VOCÊ PEDIU
-        nome_abertura = st.text_input("Nome da Abertura / Variante:", placeholder="Ex: Siciliana Taimanov")
+        # LISTA DINÂMICA: Puxa o que já tem + Opção de cadastrar nova
+        opcoes = ["-- Selecione uma existente --"] + aberturas_existentes + ["[ + CADASTRAR NOVA ]"]
+        escolha = st.selectbox("Escolha a Abertura do Adversário:", opcoes)
+        
+        nome_final = ""
+        if escolha == "[ + CADASTRAR NOVA ]":
+            nome_final = st.text_input("Digite o Nome da Nova Abertura:", placeholder="Ex: Defesa Francesa")
+        elif escolha != "-- Selecione uma existente --":
+            nome_final = escolha
+
         novo_f = st.file_uploader("Upload da Posição:", type=["jpg", "png", "jpeg"])
         novo_t = st.text_area("Insight da Engine / Estudo:")
         
         if st.button("SALVAR REGISTRO"): 
-            if novo_f and novo_t and nome_abertura:
+            if novo_f and novo_t and nome_final:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                # Limpa o nome para evitar erro de arquivo
-                nome_limpo = nome_abertura.replace(" ", "-").strip()
+                nome_limpo = nome_final.replace(" ", "-").strip()
                 base = os.path.join(IMG_DIR, f"{nome_limpo}_{ts}")
                 
                 with open(f"{base}.jpg", "wb") as file: file.write(novo_f.getbuffer())
                 with open(f"{base}.txt", "w") as file: file.write(novo_t)
-                st.success(f"Abertura '{nome_abertura}' cadastrada!")
+                st.success(f"Abertura '{nome_final}' salva com sucesso!")
                 st.rerun()
             else:
-                st.error("Preencha o nome, a imagem e o insight!")
-
-    with t2:
-        if imgs:
-            st.info(f"Editando: {nome_exibicao}")
-            # Aqui você também poderia editar o nome se quiséssemos complicar o código, 
-            # mas por enquanto vamos focar no cadastro novo.
-            novo_texto = st.text_area("Alterar Insight:", value="", key="edit_area")
-            if st.button("ATUALIZAR INSIGHT"):
-                path_txt_edit = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
-                with open(path_txt_edit, "w") as f: f.write(novo_texto)
-                st.rerun()
+                st.error("Por favor, selecione/digite o nome, a imagem e o insight!")
