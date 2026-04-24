@@ -2,10 +2,10 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDA)
+# 1. CONFIGURAÇÃO BASE (TOPO ZERO - SEU CÓDIGO DE SUCESSO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SEU FIX DE TOPO + ALINHAMENTO MILIMÉTRICO
+# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO GLOBAL
 st.markdown("""
     <style>
     /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
@@ -23,7 +23,7 @@ st.markdown("""
         padding-top: 0rem !important;
     }
 
-    /* ESTÉTICA DARK */
+    /* --- ESTÉTICA DARK --- */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -40,29 +40,28 @@ st.markdown("""
         font-size: 11px;
         text-transform: uppercase;
         text-align: center;
-        width: 100%;
     }
 
-    /* --- TRAVA DE CENTRALIZAÇÃO DO TABULEIRO --- */
-    /* Isso ataca o container da imagem e força o centro absoluto */
+    /* --- XEQUE-MATE NA CENTRALIZAÇÃO DO TABULEIRO --- */
+    /* Forçamos o container da imagem a centralizar o conteúdo e removemos larguras fixas */
     [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
-        align-items: center !important;
         width: 100% !important;
-        text-align: center !important;
     }
     
-    img {
+    [data-testid="stImage"] img {
         max-height: 60vh !important;
         width: auto !important;
         border-radius: 4px;
         border: 1px solid #222;
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        margin: 0 auto !important;
+        display: block;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 
-    /* BOTÕES CIRCULARES CENTRALIZADOS ABAIXO */
+    /* BOTÕES CENTRALIZADOS E AJUSTADOS */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -81,6 +80,7 @@ st.markdown("""
         color: #D4AF37;
     }
 
+    /* CAIXA DE ANÁLISE CENTRALIZADA */
     .insight-box {
         background-color: #111;
         padding: 20px;
@@ -90,7 +90,7 @@ st.markdown("""
         color: #E0E0E0;
         margin-top: 20px;
         text-align: center;
-        max-width: 600px;
+        max-width: 600px; /* Alinha a largura com a média do tabuleiro */
         margin-left: auto;
         margin-right: auto;
     }
@@ -118,12 +118,13 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # 1. TABULEIRO (FORA DE COLUNAS PARA NÃO DESALINHAR)
-    st.image(path_img)
+    # 1. TABULEIRO (FORA DE COLUNAS PARA GARANTIR CENTRALIZAÇÃO)
+    # Importante: use_container_width deve ser False para não esticar a imagem
+    st.image(path_img, use_container_width=False)
 
-    # 2. CONTROLES (SETAS) ABAIXO
-    # Proporção simétrica para os botões ficarem no centro exato
-    _, b1, b2, _ = st.columns([4.2, 0.8, 0.8, 4.2])
+    # 2. CONTROLES (SETAS) ABAIXO - BEM JUNTAS NO CENTRO
+    # Usamos colunas muito estreitas no meio para "colar" os botões
+    _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
     with b1:
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % total
