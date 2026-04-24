@@ -5,7 +5,7 @@ from datetime import datetime
 # 1. SUA CONFIGURAÇÃO BASE (TOPO ZERO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SUA BASE FUNCIONAL + AJUSTE DE ALINHAMENTO DAS COLUNAS
+# 2. CSS: SUA BASE FUNCIONAL + AJUSTE DE PROXIMIDADE DAS SETAS
 st.markdown("""
     <style>
     /* SEU FIX DO TOPO (INALTERADO) */
@@ -42,7 +42,7 @@ st.markdown("""
         text-align: center;
     }
 
-    /* FORÇANDO A IMAGEM A SER UM BLOCO CENTRALIZADO */
+    /* IMAGEM CENTRALIZADA */
     [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
@@ -80,14 +80,16 @@ st.markdown("""
         font-size: 25px !important;
         transition: 0.2s;
         border-radius: 50% !important;
-        margin-top: 200px;
+        margin-top: 180px;
         display: block;
     }
     
-    /* AJUSTE DE PROXIMIDADE: Empurra o botão da esquerda para a direita e o da direita para a esquerda */
+    /* AJUSTE DE MIRA: Puxa a seta esquerda para a direita (perto da imagem) */
     [data-testid="column"]:nth-of-type(1) [data-testid="stVerticalBlock"] {
         align-items: flex-end !important;
     }
+    
+    /* Garante que a seta direita fique no início da coluna (perto da imagem) */
     [data-testid="column"]:nth-of-type(3) [data-testid="stVerticalBlock"] {
         align-items: flex-start !important;
     }
@@ -107,7 +109,7 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título
+# Título Original
 st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
@@ -122,8 +124,8 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # PROPORÇÃO MANTIDA
-    c_ant, c_mid, c_prox = st.columns([1.5, 2, 1.5])
+    # PROPORÇÃO MANTIDA (A que você gostou)
+    c_ant, c_mid, c_prox = st.columns([1.5, 2, 1.5], gap="small")
     
     with c_ant:
         if st.button("‹", key="prev"):
