@@ -12,30 +12,19 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: POSICIONAMENTO ABSOLUTO PARA MATAR O VÁCUO
+# 2. CSS: ATAQUE AO ELEMENTO RAIZ
 st.markdown("""
     <style>
-    /* 1. ESCONDER HEADER ORIGINAL */
+    /* 1. MATA O HEADER E O PADDING DO CONTEÚDO */
     [data-testid="stHeader"] {display: none !important;}
+    [data-testid="stAppViewContainer"] {padding: 0 !important;}
+    [data-testid="stAppViewBlockContainer"] {padding: 0 !important;}
     
-    /* 2. ZERAR TUDO NO TOPO */
-    [data-testid="stAppViewContainer"] { padding-top: 0rem !important; }
+    /* 2. ZERA O ESPAÇO NO TOPO DO BLOCO PRINCIPAL */
     .main .block-container {
         padding-top: 1rem !important;
-        margin-top: -30px !important; 
+        margin-top: -90px !important; /* Puxa tudo para o teto */
         max-width: 1100px !important;
-    }
-
-    /* 3. FIXAR O TÍTULO NO TOPO REAL DA PÁGINA */
-    .header-fixed {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #080808;
-        z-index: 999;
-        padding: 5px 0;
-        border-bottom: 1px solid #111;
     }
 
     /* ESTÉTICA DARK */
@@ -51,7 +40,7 @@ st.markdown("""
         text-transform: uppercase;
         text-align: center;
         letter-spacing: 2px;
-        margin: 0;
+        margin-bottom: 5px;
     }
 
     .record-counter {
@@ -59,7 +48,6 @@ st.markdown("""
         font-size: 12px;
         font-weight: 600;
         text-align: center;
-        margin-top: 40px; /* Dá espaço para o título fixo não cobrir o número */
         margin-bottom: 5px;
     }
 
@@ -89,7 +77,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SUAS SETAS CIRCULARES ORIGINAIS --- */
+    /* --- SETAS ORIGINAIS (CÍRCULOS) --- */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -100,14 +88,13 @@ st.markdown("""
         border-radius: 50% !important;
         display: block;
         margin: 0 auto !important;
-        transition: 0.2s;
     }
     div.stButton > button:hover {
         border-color: #D4AF37 !important;
         color: #D4AF37 !important;
     }
 
-    /* --- BOTÕES DA GESTÃO (RETÂNGULOS) --- */
+    /* --- GESTÃO (RETÂNGULOS) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
@@ -132,13 +119,11 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# O Título agora é fixo no topo absoluto
-st.markdown('<div class="header-fixed"><p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p></div>', unsafe_allow_html=True)
+# Título
+st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
-
-# Carregar aberturas cadastradas
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -146,14 +131,13 @@ if imgs:
     curr = imgs[st.session_state.idx]
     nome_exibicao = curr.split("_")[0].replace("-", " ")
     
-    # O Registro ganha um margin-top no CSS para aparecer logo abaixo do título fixo
     st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
     img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
 
-    # NAVEGAÇÃO CENTRALIZADA
+    # NAVEGAÇÃO
     _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
     with col2:
         if st.button("‹", key="prev"):
