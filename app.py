@@ -14,7 +14,7 @@ st.markdown("""
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 1100px !important;
+        max-width: 1200px !important;
     }
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
@@ -43,17 +43,15 @@ st.markdown("""
     }
 
     /* --- CENTRALIZAÇÃO REAL DO TABULEIRO --- */
-    /* Target direto no container de imagem do Streamlit */
-    [data-testid="stImage"] {
-        text-align: center !important;
+    /* Esse comando força a coluna que contém a imagem a alinhar tudo ao centro */
+    [data-testid="column"] {
         display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         justify-content: center !important;
-        width: 100% !important;
     }
     
-    [data-testid="stImage"] > img {
-        margin-left: auto !important;
-        margin-right: auto !important;
+    img {
         max-height: 60vh !important;
         width: auto !important;
         border-radius: 4px;
@@ -118,12 +116,14 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # 1. TABULEIRO (Em uma coluna que centraliza via CSS)
-    # Aqui não usamos colunas laterais para não dar margem ao erro
-    st.image(path_img)
+    # 1. TABULEIRO CENTRALIZADO
+    # Usamos uma coluna central para garantir que ele fique no meio
+    _, col_img, _ = st.columns([1, 2, 1])
+    with col_img:
+        st.image(path_img)
 
     # 2. CONTROLES (SETAS) ABAIXO
-    # Usamos uma proporção bem estreita no meio para as setas ficarem "coladas" uma na outra
+    # Proporção simétrica para os botões ficarem no centro embaixo da imagem
     _, b1, b2, _ = st.columns([4.2, 0.8, 0.8, 4.2])
     with b1:
         if st.button("‹", key="prev"):
