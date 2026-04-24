@@ -124,4 +124,29 @@ else:
             </div>
         ''', unsafe_allow_html=True)
 
-    st.markdown(f"<p style='text-align:center; color:#222; font-size:10px; margin-top:20px;'>{st.session_state.idx + 1} / {len(imgs
+    st.markdown(f"<p style='text-align:center; color:#222; font-size:10px; margin-top:20px;'>{st.session_state.idx + 1} / {len(imgs)}</p>", unsafe_allow_html=True)
+
+# Gestão Oculta no Fundo
+st.write("<br>"*2, unsafe_allow_html=True)
+with st.expander("Gereneciamento de Dados"):
+    c1, c2 = st.columns(2)
+    with c1:
+        f = st.file_uploader("Upload", type=["jpg", "png", "jpeg"])
+        c = st.text_area("Insight:")
+        if st.button("Salvar"):
+            if f and c:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                p = os.path.join(IMG_DIR, f"{ts}.jpg")
+                with open(p, "wb") as file: file.write(f.getbuffer())
+                with open(p.replace(".jpg", ".txt"), "w") as file: file.write(c)
+                st.rerun()
+    with c2:
+        if imgs:
+            novo = st.text_area("Editar:", value=texto if 'texto' in locals() else "")
+            if st.button("Atualizar"):
+                with open(p_txt, "w") as file: file.write(novo)
+                st.rerun()
+            if st.button("Deletar"):
+                os.remove(p_img); os.remove(p_txt)
+                st.session_state.idx = 0
+                st.rerun()
