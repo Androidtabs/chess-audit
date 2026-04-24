@@ -6,15 +6,16 @@ from datetime import datetime
 # 1. CONFIGURAÇÃO BASE (SUA VERSÃO PREFERIDA - INALTERADA)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# Função para converter imagem em base64 (Sua base de sucesso)
 def get_image_base64(path):
-    with open(path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
+    if os.path.exists(path):
+        with open(path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return ""
 
-# 2. CSS: SEU FIX DE TOPO + TRAVA DOS BOTÕES DE BAIXO
+# 2. CSS: TOPO PERFEITO + ESTILIZAÇÃO DAS ABAS E BOTÕES
 st.markdown("""
     <style>
-    /* --- SEU FIX DO TOPO (EXATAMENTE COMO VOCÊ QUERIA) --- */
+    /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
@@ -83,13 +84,11 @@ st.markdown("""
         color: #D4AF37;
     }
 
-    /* --- O SEGREDO: FIX DO "BUG" DOS BOTÕES DE BAIXO --- */
-    /* Isso força os botões dentro do expander a serem retangulares novamente */
+    /* FIX DOS BOTÕES DENTRO DO EXPANDER (RETANGULARES) */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
         height: auto !important;
-        aspect-ratio: auto !important;
         padding: 10px !important;
         font-size: 14px !important;
         background-color: #1A1A1A !important;
@@ -123,23 +122,19 @@ st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort(reverse=True)
 
-if not imgs:
-    st.info("Aguardando input...")
-else:
+texto_atual = ""
+if imgs:
     if st.session_state.idx >= len(imgs): st.session_state.idx = 0
     total = len(imgs)
     curr = imgs[st.session_state.idx]
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # 1. TABULEIRO (VIA HTML - SUA MELHOR VERSÃO)
-    img_base64 = get_image_base64(path_img)
-    st.markdown(
-        f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>',
-        unsafe_allow_html=True
-    )
+    # 1. TABULEIRO (CENTRALIZADO)
+    img_64 = get_image_base64(path_img)
+    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
 
-    # 2. CONTROLES (SETAS) ABAIXO
+    # 2. CONTROLES (SETAS)
     _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
     with b1:
         if st.button("‹", key="prev"):
@@ -152,30 +147,42 @@ else:
 
     # 3. ANÁLISE
     if os.path.exists(path_txt):
-        with open(path_txt, "r") as f: texto = f.read()
-        st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
+        with open(path_txt, "r") as f: texto_atual = f.read()
+        st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto_atual}</div>', unsafe_allow_html=True)
 
-# GESTÃO OCULTA (ONDE ESTAVA O BUG)
-st.write("<br>"*3, unsafe_allow_html=True)
-with st.expander("DADOS E PROPRIEDADES"):
-    c1, c2 = st.columns(2)
-    with c1:
-        f = st.file_uploader("Novo Registro", type=["jpg", "png", "jpeg"])
-        c = st.text_area("Insight da Engine:")
-        if st.button("Salvar Registro"): 
-            if f and c:
+# GESTÃO (TABS PARA NÃO CONFUNDIR)
+st.write("<br>"*2, unsafe_allow_html=True)
+with st.expander("CENTRAL DE COMANDO"):
+    aba_add, aba_edit = st.tabs(["➕ ADICIONAR NOVO", "📝 EDITAR ATUAL"])
+    
+    with aba_add:
+        st.markdown("### Criar Nova Entrada")
+        f_novo = st.file_uploader("Upload da Imagem", type=["jpg", "png", "jpeg"], key="upload_novo")
+        c_novo = st.text_area("Insight da Engine:", key="texto_novo")
+        if st.button("SALVAR NOVO REGISTRO", key="btn_salvar"):
+            if f_novo and c_novo:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 p = os.path.join(IMG_DIR, f"{ts}.jpg")
-                with open(p, "wb") as file: file.write(f.getbuffer())
-                with open(p.replace(".jpg", ".txt"), "w") as file: file.write(c)
+                with open(p, "wb") as file: file.write(f_novo.getbuffer())
+                with open(p.replace(".jpg", ".txt"), "w") as file: file.write(c_novo)
+                st.success("Salvo com sucesso!")
                 st.rerun()
-    with c2:
+    
+    with aba_edit:
         if imgs:
-            novo = st.text_area("Editar Texto:", value=texto if 'texto' in locals() else "")
-            if st.button("Atualizar Dados"):
-                with open(path_txt, "w") as file: file.write(novo)
-                st.rerun()
-            if st.button("🗑️ Deletar"):
-                os.remove(path_img); os.remove(path_txt)
-                st.session_state.idx = 0
-                st.rerun()
+            st.markdown(f"### Editando: `{curr}`")
+            novo_texto = st.text_area("Alterar Análise:", value=texto_atual, key="edit_texto")
+            
+            c_edit1, c_edit2 = st.columns(2)
+            with c_edit1:
+                if st.button("ATUALIZAR MUDANÇAS", key="btn_update"):
+                    with open(path_txt, "w") as file: file.write(novo_texto)
+                    st.rerun()
+            with c_edit2:
+                if st.button("🗑️ DELETAR ESTE REGISTRO", key="btn_delete"):
+                    os.remove(path_img)
+                    os.remove(path_txt)
+                    st.session_state.idx = 0
+                    st.rerun()
+        else:
+            st.warning("Nenhum dado para editar.")
