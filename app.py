@@ -1,11 +1,17 @@
 import streamlit as st
 import os
+import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (TOPO ZERO - SEU CÓDIGO DE SUCESSO)
+# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDO INTEGRALMENTE)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO GLOBAL
+# Função para converter imagem em base64 (Garante centralização total via HTML)
+def get_image_base64(path):
+    with open(path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO DO TABULEIRO
 st.markdown("""
     <style>
     /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
@@ -23,7 +29,7 @@ st.markdown("""
         padding-top: 0rem !important;
     }
 
-    /* --- ESTÉTICA DARK --- */
+    /* ESTÉTICA DARK */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -42,26 +48,24 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- XEQUE-MATE NA CENTRALIZAÇÃO DO TABULEIRO --- */
-    /* Forçamos o container da imagem a centralizar o conteúdo e removemos larguras fixas */
-    [data-testid="stImage"] {
+    /* --- CENTRALIZAÇÃO ABSOLUTA DA IMAGEM --- */
+    .centered-image-container {
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
         width: 100% !important;
+        margin-bottom: 20px;
     }
     
-    [data-testid="stImage"] img {
+    .centered-image-container img {
         max-height: 60vh !important;
         width: auto !important;
         border-radius: 4px;
         border: 1px solid #222;
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        display: block;
-        margin-left: auto !important;
-        margin-right: auto !important;
     }
 
-    /* BOTÕES CENTRALIZADOS E AJUSTADOS */
+    /* BOTÕES CENTRALIZADOS ABAIXO */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -80,7 +84,6 @@ st.markdown("""
         color: #D4AF37;
     }
 
-    /* CAIXA DE ANÁLISE CENTRALIZADA */
     .insight-box {
         background-color: #111;
         padding: 20px;
@@ -90,7 +93,7 @@ st.markdown("""
         color: #E0E0E0;
         margin-top: 20px;
         text-align: center;
-        max-width: 600px; /* Alinha a largura com a média do tabuleiro */
+        max-width: 600px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -118,12 +121,14 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # 1. TABULEIRO (FORA DE COLUNAS PARA GARANTIR CENTRALIZAÇÃO)
-    # Importante: use_container_width deve ser False para não esticar a imagem
-    st.image(path_img, use_container_width=False)
+    # --- 1. TABULEIRO (VIA HTML PARA CENTRALIZAÇÃO TOTAL) ---
+    img_base64 = get_image_base64(path_img)
+    st.markdown(
+        f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>',
+        unsafe_allow_html=True
+    )
 
-    # 2. CONTROLES (SETAS) ABAIXO - BEM JUNTAS NO CENTRO
-    # Usamos colunas muito estreitas no meio para "colar" os botões
+    # --- 2. CONTROLES (SETAS) ABAIXO ---
     _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
     with b1:
         if st.button("‹", key="prev"):
@@ -134,7 +139,7 @@ else:
             st.session_state.idx = (st.session_state.idx + 1) % total
             st.rerun()
 
-    # 3. ANÁLISE
+    # --- 3. ANÁLISE ---
     if os.path.exists(path_txt):
         with open(path_txt, "r") as f: texto = f.read()
         st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
