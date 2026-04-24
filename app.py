@@ -2,73 +2,87 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. Configuração de Página: Layout Wide para as colunas funcionarem bem
-st.set_page_config(page_title="Audit", layout="wide", initial_sidebar_state="collapsed")
+# 1. Configuração de Página: Wide para amplitude total
+st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS DE FORÇA BRUTA: Zera tudo e organiza os botões laterais
+# 2. CSS DE "FORÇA BRUTA": Xeque-mate no espaço e design moderno
 st.markdown("""
     <style>
-    /* 1. MATA O TOPO COMPLETAMENTE */
-    [data-testid="stHeader"], header, [data-testid="stToolbar"] {
+    /* ELIMINAÇÃO TOTAL DE ESPAÇOS NO TOPO */
+    [data-testid="stHeader"], [data-testid="stDecoration"], header {
         display: none !important;
-        visibility: hidden !important;
+        height: 0 !important;
     }
-    
-    /* 2. PUXA O CONTEÚDO PARA O LIMITE FÍSICO DA TELA */
     .main .block-container {
-        padding-top: 0px !important;
-        margin-top: -60px !important; /* Move tudo para cima do cabeçalho invisível */
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
+        padding-top: 0rem !important;
+        margin-top: -90px !important; /* Puxa o conteúdo para o limite físico superior */
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 100% !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        background-color: #000000 !important;
     }
 
-    /* 3. DESIGN MODERNO (DEEP BLACK & GOLD) */
+    /* ESTÉTICA STEALTH (PRETO E DOURADO) */
     html, body, [class*="css"] {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
+        background-color: #000000;
+        color: #E0E0E0;
         font-family: 'Inter', sans-serif;
     }
 
-    /* 4. TABULEIRO (PROPORÇÃO PROTEGIDA) */
+    /* TABULEIRO (PROPORÇÃO PROTEGIDA) */
     .stImage img {
-        border: 1px solid #1A1A1A;
         border-radius: 4px;
-        max-height: 450px !important;
+        border: 1px solid #222;
+        max-height: 55vh !important; /* Mantém o tabuleiro visível sem scroll */
         width: auto !important;
-        margin-left: auto;
-        margin-right: auto;
+        margin: 0 auto;
         display: block;
+        box-shadow: 0 20px 50px rgba(0,0,0,1);
     }
 
-    /* 5. BOTÕES LATERAIS (FIXADOS NA ALTURA DA IMAGEM) */
+    /* BOTÕES LATERAIS TÁTEIS */
     div.stButton > button {
         background-color: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid #1A1A1A !important;
+        border: 1px solid #111 !important;
         color: #444 !important;
-        height: 450px !important; /* Mesma altura do tabuleiro */
+        height: 55vh !important; /* Acompanha a altura da imagem */
         width: 100% !important;
         font-size: 40px !important;
         transition: 0.3s;
+        border-radius: 8px;
     }
     div.stButton > button:hover {
         border-color: #D4AF37 !important;
         color: #D4AF37 !important;
-        background-color: #0A0A0A !important;
+        background-color: rgba(212, 175, 55, 0.05) !important;
     }
 
-    /* 6. CAIXA DE TEXTO ELEGANTE */
-    .analysis-box {
-        background-color: #050505;
-        padding: 20px;
-        border-top: 1px solid #1A1A1A;
+    /* CARD DE INSIGHT (ELEGÂNCIA TÉCNICA) */
+    .analysis-card {
+        background-color: #0A0A0A;
+        padding: 20px 40px;
+        border-radius: 4px;
         border-bottom: 2px solid #D4AF37;
-        margin-top: 10px;
+        margin: 10px auto;
+        max-width: 800px;
+        text-align: center;
         font-size: 16px;
         color: #CCC;
         line-height: 1.6;
-        text-align: center;
     }
 
+    .system-tag {
+        font-size: 9px;
+        letter-spacing: 3px;
+        color: #333;
+        text-align: center;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    /* Esconde rodapé oficial */
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -76,6 +90,9 @@ st.markdown("""
 IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
+
+# Título colado no topo
+st.markdown('<div class="system-tag">Strategist Protocol // Opening Study</div>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort(reverse=True)
@@ -88,40 +105,39 @@ else:
     p_img = os.path.join(IMG_DIR, curr_img)
     p_txt = p_img.replace(".jpg", ".txt")
 
-    # --- LAYOUT DE ELITE: [BOTÃO] [TABULEIRO] [BOTÃO] ---
-    # Usamos 3 colunas onde a do meio é a maior
-    c_prev, c_main, c_next = st.columns([1, 6, 1])
+    # --- GRID DE CONTROLE: [BOTÃO] [IMAGEM] [BOTÃO] ---
+    c_ant, c_mid, c_prox = st.columns([1, 6, 1])
     
-    with c_prev:
-        st.write("<br>"*2, unsafe_allow_html=True) # Alinhamento sutil
+    with c_ant:
+        st.write("<br>"*2, unsafe_allow_html=True)
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
             st.rerun()
 
-    with c_main:
-        # Tabuleiro Central
+    with c_mid:
+        # Exibição do Tabuleiro Centralizado
         st.image(p_img, use_container_width=True)
         
         # Insight colado embaixo da imagem
         if os.path.exists(p_txt):
             with open(p_txt, "r") as f: texto = f.read()
-            st.markdown(f'<div class="analysis-box">{texto}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="analysis-card">{texto}</div>', unsafe_allow_html=True)
 
-    with c_next:
+    with c_prox:
         st.write("<br>"*2, unsafe_allow_html=True)
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
             st.rerun()
 
-    st.markdown(f"<p style='text-align:center; color:#111; font-size:10px; margin-top:20px;'>RECORD {st.session_state.idx + 1} / {len(imgs)}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center; color:#111; font-size:10px;'>ENTRY {st.session_state.idx + 1} / {len(imgs)}</p>", unsafe_allow_html=True)
 
-# GESTÃO (No fim da página, bem discreta)
-with st.expander("TERMINAL DE COMANDO"):
+# GESTÃO (Final da página)
+with st.expander("TERMINAL DE DADOS"):
     c1, c2 = st.columns(2)
     with c1:
-        f = st.file_uploader("Upload", type=["jpg", "png", "jpeg"])
+        f = st.file_uploader("Upload Dossier", type=["jpg", "png", "jpeg"])
         c = st.text_area("Insight Técnico:")
-        if st.button("Salvar"):
+        if st.button("Executar"):
             if f and c:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 p = os.path.join(IMG_DIR, f"{ts}.jpg")
@@ -130,11 +146,11 @@ with st.expander("TERMINAL DE COMANDO"):
                 st.rerun()
     with c2:
         if imgs:
-            novo = st.text_area("Editar:", value=texto if 'texto' in locals() else "")
+            novo = st.text_area("Corrigir Log:", value=texto if 'texto' in locals() else "")
             if st.button("Atualizar"):
                 with open(p_txt, "w") as f: f.write(novo)
                 st.rerun()
-            if st.button("Eliminar Registro"):
+            if st.button("🗑️ Eliminar"):
                 os.remove(p_img); os.remove(p_txt)
                 st.session_state.idx = 0
                 st.rerun()
