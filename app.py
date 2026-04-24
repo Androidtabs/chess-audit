@@ -2,19 +2,19 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. SUA CONFIGURAÇÃO BASE (TOPO ZERO)
+# 1. BASE DE TOPO ZERO
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SUA BASE FUNCIONAL + AJUSTE DE CENTRALIZAÇÃO FORÇADA
+# 2. CSS: SIMETRIA E COMPACTAÇÃO
 st.markdown("""
     <style>
-    /* SEU FIX DO TOPO (INALTERADO) */
+    /* FIX DO TOPO */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 1200px !important;
+        max-width: 1000px !important; /* REDUZIDO PARA APROXIMAR OS BOTÕES */
     }
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
@@ -23,7 +23,7 @@ st.markdown("""
         padding-top: 0rem !important;
     }
 
-    /* ESTÉTICA DARK E CENTRALIZAÇÃO */
+    /* ESTÉTICA */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -36,20 +36,20 @@ st.markdown("""
         letter-spacing: 2px;
         color: #444;
         margin-top: 0px !important;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         font-size: 10px;
         text-transform: uppercase;
         text-align: center;
     }
 
-    /* FORÇANDO A IMAGEM A SER UM BLOCO CENTRALIZADO */
+    /* CENTRALIZAÇÃO FORÇADA DO CONTEÚDO */
     [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
     }
     
     img {
-        max-height: 62vh !important;
+        max-height: 60vh !important;
         width: auto !important;
         border-radius: 4px;
         border: 1px solid #1A1A1A;
@@ -65,22 +65,22 @@ st.markdown("""
         color: #E0E0E0;
         margin-top: 15px;
         text-align: center;
-        max-width: 600px; /* BOX MAIS COMPACTO PARA COMBINAR COM TABULEIRO */
+        max-width: 600px;
         margin-left: auto;
         margin-right: auto;
     }
 
-    /* BOTÕES LATERAIS CIRCULARES */
+    /* BOTÕES LATERAIS CIRCULARES E ALINHADOS */
     div.stButton > button {
         background-color: transparent !important;
         color: #555 !important;
         border: 1px solid #1A1A1A !important;
-        height: 70px !important;
-        width: 70px !important;
-        font-size: 25px !important;
+        height: 60px !important;
+        width: 60px !important;
+        font-size: 22px !important;
         transition: 0.2s;
         border-radius: 50% !important;
-        margin-top: 200px;
+        margin-top: 160px; /* ALINHADO AO MEIO DA IMAGEM */
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -89,9 +89,9 @@ st.markdown("""
     div.stButton > button:hover {
         border-color: #D4AF37;
         color: #D4AF37;
+        background-color: rgba(212, 175, 55, 0.05) !important;
     }
 
-    /* Limpeza de UI */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
@@ -101,7 +101,6 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título
 st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
@@ -116,9 +115,8 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # MUDANÇA NA PROPORÇÃO: [1.5 lateral, 2 centro, 1.5 lateral]
-    # Isso centraliza o tabuleiro perfeitamente
-    c_ant, c_mid, c_prox = st.columns([1.5, 2, 1.5])
+    # PROPORÇÃO AJUSTADA PARA APROXIMAR OS BOTÕES DO TABULEIRO
+    c_ant, c_mid, c_prox = st.columns([1, 4, 1])
     
     with c_ant:
         if st.button("‹", key="prev"):
@@ -136,7 +134,7 @@ else:
             st.session_state.idx = (st.session_state.idx + 1) % total
             st.rerun()
 
-# Gestão Oculta
+# GESTÃO
 st.write("<br>"*2, unsafe_allow_html=True)
 with st.expander("DADOS E PROPRIEDADES"):
     c1, c2 = st.columns(2)
