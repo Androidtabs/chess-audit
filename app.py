@@ -2,74 +2,78 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# Configuração de página para ocupar o máximo de espaço
+# Configuração de página
 st.set_page_config(page_title="Audit", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS AGRESSIVO para ganhar espaço no topo e largura
+# CSS "HARDCORE" para eliminar espaços fantasmas no topo
 st.markdown("""
     <style>
-    /* 1. Elimina o Header e o espaço em branco superior */
+    /* 1. Alvo principal: O container de visualização e o header */
     [data-testid="stHeader"] {display: none !important;}
+    [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
+        padding-top: 0rem !important;
+        margin-top: -50px !important; /* Puxa o conteúdo para cima de forma agressiva */
+    }
+    
     .main .block-container {
-        padding-top: 0.5rem !important;
+        padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        max-width: 950px !important; /* Aumenta a amplitude lateral */
+        max-width: 1000px !important;
     }
 
-    /* 2. Título ultra compacto */
+    /* 2. Estilo do Título e Header */
     .header-text {
         font-family: 'Inter', sans-serif;
         font-weight: 400;
         letter-spacing: 2px;
         color: #444;
         text-align: left;
+        margin-top: 0px !important;
         margin-bottom: 5px;
         font-size: 11px;
         text-transform: uppercase;
     }
 
-    /* 3. Imagem Ampla */
+    /* 3. Imagem e Proporções */
     img {
-        max-height: 55vh !important; /* Aumenta a altura da imagem */
+        max-height: 60vh !important;
         width: 100%;
         object-fit: contain;
-        border-radius: 8px;
+        border-radius: 4px;
         border: 1px solid #333;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    /* 4. Caixa de Insight Ampla e Elegante */
+    /* 4. Caixa de Insight */
     .insight-box {
         background-color: #161B22;
-        padding: 25px;
-        border-radius: 8px;
-        border-bottom: 3px solid #D4AF37;
-        font-size: 16px;
-        line-height: 1.6;
+        padding: 20px;
+        border-radius: 4px;
+        border-bottom: 2px solid #D4AF37;
+        font-size: 15px;
+        line-height: 1.5;
         color: #E0E0E0;
-        margin-top: 10px;
+        margin-top: 5px;
     }
 
-    /* 5. Botões de Navegação nas Laterais */
+    /* 5. Navegação Lateral (Botões) */
     div.stButton > button {
-        background-color: rgba(26, 26, 26, 0.5);
-        color: #fff;
-        border: 1px solid #333;
-        height: 400px; /* Botão alto acompanhando a imagem */
+        background-color: rgba(26, 26, 26, 0.3);
+        color: #555;
+        border: 1px solid #222;
+        height: 450px;
         width: 100%;
-        font-size: 40px;
-        transition: 0.2s;
+        font-size: 30px;
+        transition: 0.3s;
     }
     
     div.stButton > button:hover {
         border-color: #D4AF37;
         color: #D4AF37;
-        background-color: #161B22;
     }
 
-    /* Remove Scrollbar lateral desnecessária */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: #333; }
+    /* Esconde elementos de sistema adicionais */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -77,7 +81,7 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título discreto e posicionado
+# Título colado no topo
 st.markdown('<p class="header-text">Chess Strategy Lab / Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
@@ -91,31 +95,29 @@ else:
     p = os.path.join(IMG_DIR, curr)
     t_p = p.replace(".jpg", ".txt")
 
-    # GRID AMPLO
-    col_ant, col_mid, col_prox = st.columns([0.4, 6, 0.4])
+    # Colunas principais
+    c_ant, c_mid, c_prox = st.columns([0.4, 6, 0.4])
     
-    with col_ant:
+    with c_ant:
         st.write("<br>"*2, unsafe_allow_html=True)
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
             st.rerun()
 
-    with col_mid:
+    with c_mid:
         st.image(p, use_container_width=True)
         if os.path.exists(t_p):
             with open(t_p, "r") as f: texto = f.read()
-            st.markdown(f'<div class="insight-box"><b>DETALHES TÉCNICOS:</b><br>{texto}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="insight-box"><b>DETALHES:</b> {texto}</div>', unsafe_allow_html=True)
 
-    with col_prox:
+    with c_prox:
         st.write("<br>"*2, unsafe_allow_html=True)
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
             st.rerun()
 
-    st.markdown(f"<p style='text-align:right; color:#333; font-size:10px; margin-right:50px;'>DATA_POINT_{st.session_state.idx + 1}_OF_{len(imgs)}</p>", unsafe_allow_html=True)
-
-# GESTÃO RECOLHIDA NO RODAPÉ
-with st.expander("PROPRIEDADES E DADOS"):
+# Rodapé de Gestão
+with st.expander("PROPRIEDADES"):
     c1, c2 = st.columns(2)
     with c1:
         f = st.file_uploader("Upload", type=["jpg", "png", "jpeg"])
