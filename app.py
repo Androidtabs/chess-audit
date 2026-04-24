@@ -5,22 +5,23 @@ from datetime import datetime
 # 1. CONFIGURAÇÃO BASE (TOPO ZERO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SUA BASE FUNCIONAL + TRAVA DE CENTRALIZAÇÃO
+# 2. CSS DE ALTA PRECISÃO: Centralização e Remoção de Vácuo
 st.markdown("""
     <style>
-    /* SEU FIX DO TOPO (MANTIDO) */
-    [data-testid="stHeader"] {display: none !important;}
+    /* 1. MATA O TOPO COMPLETAMENTE */
+    [data-testid="stHeader"], header {display: none !important;}
+    
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        margin-top: -30px !important;
+        margin-top: -50px !important; /* Puxa o conteúdo para o limite superior */
         max-width: 1200px !important;
-    }
-    [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
-        padding-top: 0rem !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centraliza tudo o que estiver dentro */
     }
 
-    /* ESTÉTICA DARK */
+    /* 2. ESTÉTICA DARK */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -37,9 +38,11 @@ st.markdown("""
         font-size: 10px;
         text-transform: uppercase;
         text-align: center;
+        width: 100%;
     }
 
-    /* XEQUE-MATE NA CENTRALIZAÇÃO: Força o container da imagem a centralizar o conteúdo */
+    /* 3. TABULEIRO: CENTRALIZAÇÃO ABSOLUTA */
+    /* Forçamos o container da imagem a ocupar a largura total e centralizar */
     [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
@@ -54,7 +57,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* BOTÕES DE NAVEGAÇÃO CENTRALIZADOS */
+    /* 4. BOTÕES DE NAVEGAÇÃO: ESTILO CONSOLE */
     div.stButton > button {
         background-color: transparent !important;
         color: #555 !important;
@@ -62,6 +65,7 @@ st.markdown("""
         height: 50px !important;
         width: 50px !important;
         font-size: 20px !important;
+        transition: 0.2s;
         border-radius: 50% !important;
         display: block;
         margin: 0 auto !important;
@@ -72,6 +76,7 @@ st.markdown("""
         color: #D4AF37;
     }
 
+    /* 5. BOX DE ANÁLISE */
     .insight-box {
         background-color: #0E0E0E;
         padding: 20px;
@@ -79,7 +84,7 @@ st.markdown("""
         border-bottom: 2px solid #D4AF37;
         font-size: 15px;
         color: #E0E0E0;
-        margin-top: 20px;
+        margin-top: 25px;
         text-align: center;
         max-width: 600px;
         margin-left: auto;
@@ -94,13 +99,14 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
+# Título
 st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort(reverse=True)
 
 if not imgs:
-    st.info("Aguardando input...")
+    st.info("Aguardando input no terminal de dados...")
 else:
     if st.session_state.idx >= len(imgs): st.session_state.idx = 0
     total = len(imgs)
@@ -108,27 +114,30 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # 1. TABULEIRO (Em coluna única para evitar desalinhamento lateral)
+    # --- 1. EXIBIÇÃO DO TABULEIRO ---
+    # Colocamos fora de colunas para o CSS de centralização total funcionar melhor
     st.image(path_img, use_container_width=True)
 
-    # 2. CONTROLES (SETAS) ABAIXO
-    # Usamos colunas bem ajustadas para manter as setas no centro
-    _, b1, b2, _ = st.columns([4, 0.5, 0.5, 4])
+    # --- 2. CONTROLES (SETAS) ABAIXO ---
+    # Usamos 5 colunas para deixar os botões bem próximos e centralizados no meio
+    _, b1, b2, _ = st.columns([5, 1, 1, 5])
+    
     with b1:
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % total
             st.rerun()
+
     with b2:
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % total
             st.rerun()
 
-    # 3. ANÁLISE
+    # --- 3. ANÁLISE ---
     if os.path.exists(path_txt):
         with open(path_txt, "r") as f: texto = f.read()
         st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
 
-# GESTÃO OCULTA
+# GESTÃO OCULTA NO RODAPÉ
 st.write("<br>"*3, unsafe_allow_html=True)
 with st.expander("DADOS E PROPRIEDADES"):
     c1, c2 = st.columns(2)
