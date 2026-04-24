@@ -3,23 +3,30 @@ import os
 import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO DO CAPITÃO (PYTHON/STREAMLIT)
+# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDO INTEGRALMENTE)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# Função Python para converter a imagem (necessário para o "truque" da centralização)
+# Função para converter imagem em base64 (Garante centralização total via HTML)
 def get_image_base64(path):
     with open(path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-# 2. AS INSTRUÇÕES TÁTICAS (CSS PARA O NAVEGADOR)
+# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO DO TABULEIRO
 st.markdown("""
     <style>
-    /* MATA O ESPAÇO NO TOPO (SEU FIX DE SUCESSO) */
+    /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
-        padding-bottom: 0rem !important;        margin-top: -30px !important;
+        padding-bottom: 0rem !important;
+        margin-top: -30px !important;
         max-width: 1100px !important;
+    }
+    [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
+        padding-top: 0rem !important;
+    }
+    #root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.block-container {
+        padding-top: 0rem !important;
     }
 
     /* ESTÉTICA DARK */
@@ -34,19 +41,22 @@ st.markdown("""
         font-weight: 400;
         letter-spacing: 2px;
         color: #444;
+        margin-top: 0px !important;
         margin-bottom: 20px;
         font-size: 11px;
         text-transform: uppercase;
         text-align: center;
     }
 
-    /* CENTRALIZAÇÃO DO TABULEIRO */
+    /* --- CENTRALIZAÇÃO ABSOLUTA DA IMAGEM --- */
     .centered-image-container {
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
         width: 100% !important;
-        margin-bottom: 10px;
+        margin-bottom: 20px;
     }
+    
     .centered-image-container img {
         max-height: 60vh !important;
         width: auto !important;
@@ -55,7 +65,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* ESTILO DAS SETAS */
+    /* BOTÕES CENTRALIZADOS ABAIXO */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -63,6 +73,7 @@ st.markdown("""
         height: 55px !important;
         width: 55px !important;
         font-size: 22px !important;
+        transition: 0.2s;
         border-radius: 50% !important;
         display: block;
         margin: 0 auto !important;
@@ -72,10 +83,6 @@ st.markdown("""
         border-color: #D4AF37;
         color: #D4AF37;
     }
-
-    /* ALINHAMENTO DAS COLUNAS DE BOTÕES */
-    [data-testid="column"]:nth-of-type(1) { text-align: right !important; }
-    [data-testid="column"]:nth-of-type(2) { text-align: left !important; }
 
     .insight-box {
         background-color: #111;
@@ -90,6 +97,7 @@ st.markdown("""
         margin-left: auto;
         margin-right: auto;
     }
+
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -98,7 +106,7 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# TÍTULO
+# Título
 st.markdown('<p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
@@ -113,12 +121,14 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # --- 1. TABULEIRO CENTRALIZADO ---
+    # --- 1. TABULEIRO (VIA HTML PARA CENTRALIZAÇÃO TOTAL) ---
     img_base64 = get_image_base64(path_img)
-    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>',
+        unsafe_allow_html=True
+    )
 
-    # --- 2. SETAS CENTRALIZADAS LOGO ABAIXO ---
-    # Usamos colunas bem juntas para as setas não se espalharem
+    # --- 2. CONTROLES (SETAS) ABAIXO ---
     _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
     with b1:
         if st.button("‹", key="prev"):
@@ -134,7 +144,7 @@ else:
         with open(path_txt, "r") as f: texto = f.read()
         st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
 
-# GESTÃO OCULTA NO FINAL
+# GESTÃO OCULTA
 st.write("<br>"*3, unsafe_allow_html=True)
 with st.expander("DADOS E PROPRIEDADES"):
     c1, c2 = st.columns(2)
