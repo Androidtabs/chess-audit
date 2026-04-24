@@ -3,27 +3,23 @@ import os
 import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDO INTEGRALMENTE)
+# 1. CONFIGURAÇÃO BASE (MANTIDA)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# Função para converter imagem em base64
 def get_image_base64(path):
     with open(path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-# 2. CSS: SEU FIX DE TOPO + TRAVA DE EIXO PARA AS SETAS
+# 2. CSS: SEPARAÇÃO DE ESTILOS (SETAS VS GESTÃO)
 st.markdown("""
     <style>
-    /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
+    /* FIX DO TOPO */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
         max-width: 1100px !important;
-    }
-    [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
-        padding-top: 0rem !important;
     }
     #root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.block-container {
         padding-top: 0rem !important;
@@ -41,14 +37,13 @@ st.markdown("""
         font-weight: 400;
         letter-spacing: 2px;
         color: #444;
-        margin-top: 0px !important;
         margin-bottom: 20px;
         font-size: 11px;
         text-transform: uppercase;
         text-align: center;
     }
 
-    /* --- CENTRALIZAÇÃO ABSOLUTA DA IMAGEM --- */
+    /* TABULEIRO CENTRALIZADO */
     .centered-image-container {
         display: flex !important;
         justify-content: center !important;
@@ -56,7 +51,6 @@ st.markdown("""
         width: 100% !important;
         margin-bottom: 20px;
     }
-    
     .centered-image-container img {
         max-height: 60vh !important;
         width: auto !important;
@@ -65,29 +59,37 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* BOTÕES CENTRALIZADOS E TRAVADOS NO EIXO */
-    div.stButton > button {
+    /* --- ESTILO DAS SETAS (APENAS PARA NAVEGAÇÃO) --- */
+    /* Usamos o seletor de colunas da navegação para aplicar o círculo */
+    [data-testid="column"]:nth-of-type(2) button, 
+    [data-testid="column"]:nth-of-type(3) button {
         background-color: transparent !important;
         color: #666 !important;
         border: 1px solid #222 !important;
         height: 55px !important;
         width: 55px !important;
         font-size: 22px !important;
-        transition: 0.2s;
         border-radius: 50% !important;
         display: block;
         margin: 0 auto !important;
     }
-    
-    /* ESTE AJUSTE GARANTE QUE AS COLUNAS NÃO PASSEM DA LARGURA DA IMAGEM */
-    div[data-testid="stHorizontalBlock"] {
-        max-width: 1100px !important;
-        margin: 0 auto !important;
-    }
 
-    div.stButton > button:hover {
-        border-color: #D4AF37;
-        color: #D4AF37;
+    /* --- ESTILO DOS BOTÕES DE GESTÃO (RETANGULARES) --- */
+    /* Botões que estão dentro do Expander voltam ao normal, mas com tema dark */
+    .stExpander button {
+        background-color: #1A1A1A !important;
+        color: #EEE !important;
+        border: 1px solid #333 !important;
+        border-radius: 4px !important;
+        height: auto !important;
+        width: 100% !important;
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+    
+    .stExpander button:hover {
+        border-color: #D4AF37 !important;
+        color: #D4AF37 !important;
     }
 
     .insight-box {
@@ -126,15 +128,12 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # --- 1. TABULEIRO ---
+    # 1. TABULEIRO
     img_base64 = get_image_base64(path_img)
-    st.markdown(
-        f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>',
-        unsafe_allow_html=True
-    )
+    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
 
-    # --- 2. CONTROLES (SETAS) ABAIXO ---
-    # Agora travados no mesmo eixo de 1100px
+    # 2. SETAS DE NAVEGAÇÃO
+    # Usamos 4 colunas. As colunas 2 e 3 recebem o estilo circular via CSS
     _, b1, b2, _ = st.columns([1, 0.15, 0.15, 1])
     with b1:
         if st.button("‹", key="prev"):
@@ -145,19 +144,19 @@ else:
             st.session_state.idx = (st.session_state.idx + 1) % total
             st.rerun()
 
-    # --- 3. ANÁLISE ---
+    # 3. ANÁLISE
     if os.path.exists(path_txt):
         with open(path_txt, "r") as f: texto = f.read()
         st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
 
-# GESTÃO OCULTA
+# GESTÃO (EXPANDER)
 st.write("<br>"*3, unsafe_allow_html=True)
 with st.expander("DADOS E PROPRIEDADES"):
     c1, c2 = st.columns(2)
     with c1:
         f = st.file_uploader("Novo Registro", type=["jpg", "png", "jpeg"])
         c = st.text_area("Insight da Engine:")
-        if st.button("Salvar"):
+        if st.button("Salvar Registro"): # Texto mais claro
             if f and c:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 p = os.path.join(IMG_DIR, f"{ts}.jpg")
@@ -166,11 +165,14 @@ with st.expander("DADOS E PROPRIEDADES"):
                 st.rerun()
     with c2:
         if imgs:
-            novo = st.text_area("Editar Texto:", value=texto if 'texto' in locals() else "")
-            if st.button("Atualizar"):
-                with open(path_txt, "w") as file: file.write(novo)
-                st.rerun()
-            if st.button("🗑️ Deletar"):
-                os.remove(path_img); os.remove(path_txt)
-                st.session_state.idx = 0
-                st.rerun()
+            novo = st.text_area("Editar Texto Atual:", value=texto if 'texto' in locals() else "")
+            col_edit, col_del = st.columns(2)
+            with col_edit:
+                if st.button("Atualizar Texto"):
+                    with open(path_txt, "w") as file: file.write(novo)
+                    st.rerun()
+            with col_del:
+                if st.button("Deletar"):
+                    os.remove(path_img); os.remove(path_txt)
+                    st.session_state.idx = 0
+                    st.rerun()
