@@ -3,6 +3,7 @@ import os
 import base64
 from datetime import datetime
 
+# 1. CONFIGURAÇÃO BASE
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
 def get_image_base64(path):
@@ -11,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# --- CSS (MANTIDO E AJUSTADO PARA AS TAGS) ---
+# 2. CSS: DESIGN DARK COM FOCO NA TAG DE ABERTURA
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -21,17 +22,17 @@ st.markdown("""
     .header-text { font-size: 11px; color: #444; text-transform: uppercase; text-align: center; letter-spacing: 2px; }
     .record-counter { color: #D4AF37; font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 5px; }
     
-    /* TAG DE ABERTURA */
+    /* ESTILO DA TAG DE ABERTURA */
     .opening-tag {
         background-color: #1A1A1A;
         color: #D4AF37;
-        padding: 4px 12px;
-        border-radius: 20px;
-        border: 1px solid #D4AF37;
-        font-size: 10px;
+        padding: 5px 15px;
+        border-radius: 4px;
+        border: 1px solid #333;
+        font-size: 13px;
         display: inline-block;
         margin-bottom: 15px;
-        text-transform: uppercase;
+        font-weight: bold;
     }
 
     .centered-image-container { display: flex; justify-content: center; margin-bottom: 20px; }
@@ -48,26 +49,22 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-st.markdown('<p class="header-text">Chess Strategy Lab // Auditoria de Aberturas</p>', unsafe_allow_html=True)
+st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
+# Lógica de leitura de arquivos
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
-
-# --- FILTRO DE BUSCA (NOVO RECURSO) ---
-busca = st.sidebar.text_input("🔍 Filtrar por Abertura (Ex: Siciliana)")
-if busca:
-    imgs = [f for f in imgs if busca.lower() in f.lower()]
 
 if imgs:
     if st.session_state.idx >= len(imgs): st.session_state.idx = 0
     curr = imgs[st.session_state.idx]
     
-    # Extrair nome da abertura do nome do arquivo
-    # Esperamos o formato: Abertura_Data.jpg
-    abertura_nome = curr.split("_")[0] if "_" in curr else "Não Classificada"
+    # Extrai o nome da abertura removendo o timestamp final
+    # Ex: Siciliana-Taimanov_20260424.jpg -> Siciliana Taimanov
+    nome_exibicao = curr.split("_")[0].replace("-", " ")
     
     st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
-    st.markdown(f'<div style="text-align:center"><span class="opening-tag">{abertura_nome}</span></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
     img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
@@ -80,26 +77,40 @@ if imgs:
 
     path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
     if os.path.exists(path_txt):
-        with open(path_txt, "r") as f: st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {f.read()}</div>', unsafe_allow_html=True)
+        with open(path_txt, "r") as f: 
+            st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {f.read()}</div>', unsafe_allow_html=True)
 
 st.write("")
-with st.expander("⚙️ GESTÃO DE DADOS"):
-    t1, t2 = st.tabs(["➕ NOVO", "📝 EDITAR"])
+with st.expander("⚙️ GESTÃO DE DADOS (CADASTRAR ABERTURAS)"):
+    t1, t2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR ATUAL"])
+    
     with t1:
-        # PADRONIZAÇÃO AQUI
-        opcoes = ["Siciliana", "Inglesa", "Escandinava", "Ruy Lopez", "Gambito da Dama", "Caro-Kann", "Outra"]
-        sel_abertura = st.selectbox("Tipo de Abertura:", opcoes)
-        if sel_abertura == "Outra":
-            sel_abertura = st.text_input("Qual abertura?")
-            
-        n_f = st.file_uploader("Imagem", type=["jpg", "png"])
-        n_t = st.text_area("Insight:")
-        if st.button("SALVAR"):
-            if n_f and n_t and sel_abertura:
-                # O nome do arquivo vira a tag: Abertura_Timestamp.jpg
-                ts = datetime.now().strftime("%Y%m%d%H%M%S")
-                nome_base = f"{sel_abertura.replace(' ', '-')}_{ts}"
-                with open(os.path.join(IMG_DIR, f"{nome_base}.jpg"), "wb") as f: f.write(n_f.getbuffer())
-                with open(os.path.join(IMG_DIR, f"{nome_base}.txt"), "w") as f: f.write(n_t)
+        # CAMPO DE CADASTRO QUE VOCÊ PEDIU
+        nome_abertura = st.text_input("Nome da Abertura / Variante:", placeholder="Ex: Siciliana Taimanov")
+        novo_f = st.file_uploader("Upload da Posição:", type=["jpg", "png", "jpeg"])
+        novo_t = st.text_area("Insight da Engine / Estudo:")
+        
+        if st.button("SALVAR REGISTRO"): 
+            if novo_f and novo_t and nome_abertura:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                # Limpa o nome para evitar erro de arquivo
+                nome_limpo = nome_abertura.replace(" ", "-").strip()
+                base = os.path.join(IMG_DIR, f"{nome_limpo}_{ts}")
+                
+                with open(f"{base}.jpg", "wb") as file: file.write(novo_f.getbuffer())
+                with open(f"{base}.txt", "w") as file: file.write(novo_t)
+                st.success(f"Abertura '{nome_abertura}' cadastrada!")
                 st.rerun()
-    # ... (Tab de editar mantida)
+            else:
+                st.error("Preencha o nome, a imagem e o insight!")
+
+    with t2:
+        if imgs:
+            st.info(f"Editando: {nome_exibicao}")
+            # Aqui você também poderia editar o nome se quiséssemos complicar o código, 
+            # mas por enquanto vamos focar no cadastro novo.
+            novo_texto = st.text_area("Alterar Insight:", value="", key="edit_area")
+            if st.button("ATUALIZAR INSIGHT"):
+                path_txt_edit = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
+                with open(path_txt_edit, "w") as f: f.write(novo_texto)
+                st.rerun()
