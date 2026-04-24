@@ -2,19 +2,19 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDO)
+# 1. CONFIGURAÇÃO BASE (TOPO ZERO)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SEU FIX DE TOPO + TRAVA DE CENTRALIZAÇÃO ABSOLUTA
+# 2. CSS: SEU FIX DE TOPO + FORÇA BRUTA NA CENTRALIZAÇÃO
 st.markdown("""
     <style>
-    /* --- SEU FIX DO TOPO (INALTERADO) --- */
+    /* --- SEU FIX DO TOPO (MANTIDO) --- */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 1200px !important;
+        max-width: 1100px !important;
     }
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
@@ -23,7 +23,7 @@ st.markdown("""
         padding-top: 0rem !important;
     }
 
-    /* ESTÉTICA DARK */
+    /* --- ESTÉTICA DARK --- */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -35,21 +35,25 @@ st.markdown("""
         font-weight: 400;
         letter-spacing: 2px;
         color: #444;
+        margin-top: 0px !important;
         margin-bottom: 20px;
         font-size: 11px;
         text-transform: uppercase;
         text-align: center;
     }
 
-    /* --- O SEGREDO DA CENTRALIZAÇÃO --- */
-    /* Força o container da imagem a centralizar o conteúdo horizontalmente */
+    /* --- CENTRALIZAÇÃO REAL DO TABULEIRO --- */
+    /* Target direto no container de imagem do Streamlit */
     [data-testid="stImage"] {
+        text-align: center !important;
         display: flex !important;
         justify-content: center !important;
         width: 100% !important;
     }
     
-    img {
+    [data-testid="stImage"] > img {
+        margin-left: auto !important;
+        margin-right: auto !important;
         max-height: 60vh !important;
         width: auto !important;
         border-radius: 4px;
@@ -57,7 +61,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* BOTÕES CIRCULARES CENTRALIZADOS */
+    /* BOTÕES CENTRALIZADOS */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -76,6 +80,7 @@ st.markdown("""
         color: #D4AF37;
     }
 
+    /* CAIXA DE ANÁLISE CENTRALIZADA */
     .insight-box {
         background-color: #111;
         padding: 20px;
@@ -83,9 +88,9 @@ st.markdown("""
         border-bottom: 2px solid #D4AF37;
         font-size: 15px;
         color: #E0E0E0;
-        margin-top: 25px;
+        margin-top: 20px;
         text-align: center;
-        max-width: 600px; /* Garante que a caixa de texto também fique centralizada */
+        max-width: 600px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -113,34 +118,26 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # --- LAYOUT DE EIXO CENTRAL ---
-    # Usamos uma coluna larga no meio para que o CSS de centralização trabalhe nela
-    _, center_col, _ = st.columns([1, 4, 1])
-    
-    with center_col:
-        # 1. TABULEIRO (Agora centralizado via CSS)
-        st.image(path_img, use_container_width=True)
+    # 1. TABULEIRO (Em uma coluna que centraliza via CSS)
+    # Aqui não usamos colunas laterais para não dar margem ao erro
+    st.image(path_img)
 
-        # 2. BOTÕES (Sub-colunas para ficarem juntos no meio)
-        st.write("") 
-        b_col1, b_col2 = st.columns(2)
-        with b_col1:
-            # Alinhamos o botão 'Anterior' para a direita da sua subcoluna
-            st.markdown('<style>div[data-testid="column"]:nth-of-type(1) {text-align: right;}</style>', unsafe_allow_html=True)
-            if st.button("‹", key="prev"):
-                st.session_state.idx = (st.session_state.idx - 1) % total
-                st.rerun()
-        with b_col2:
-            # Alinhamos o botão 'Próximo' para a esquerda da sua subcoluna
-            st.markdown('<style>div[data-testid="column"]:nth-of-type(2) {text-align: left;}</style>', unsafe_allow_html=True)
-            if st.button("›", key="next"):
-                st.session_state.idx = (st.session_state.idx + 1) % total
-                st.rerun()
+    # 2. CONTROLES (SETAS) ABAIXO
+    # Usamos uma proporção bem estreita no meio para as setas ficarem "coladas" uma na outra
+    _, b1, b2, _ = st.columns([4.2, 0.8, 0.8, 4.2])
+    with b1:
+        if st.button("‹", key="prev"):
+            st.session_state.idx = (st.session_state.idx - 1) % total
+            st.rerun()
+    with b2:
+        if st.button("›", key="next"):
+            st.session_state.idx = (st.session_state.idx + 1) % total
+            st.rerun()
 
-        # 3. ANÁLISE
-        if os.path.exists(path_txt):
-            with open(path_txt, "r") as f: texto = f.read()
-            st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
+    # 3. ANÁLISE
+    if os.path.exists(path_txt):
+        with open(path_txt, "r") as f: texto = f.read()
+        st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto}</div>', unsafe_allow_html=True)
 
 # GESTÃO OCULTA
 st.write("<br>"*3, unsafe_allow_html=True)
