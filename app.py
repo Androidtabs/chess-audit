@@ -12,26 +12,25 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: ATAQUE TOTAL AO ESPAÇO SUPERIOR
+# 2. CSS: ATAQUE TOTAL AO VÁCUO DO TOPO
 st.markdown("""
     <style>
-    /* 1. Esconde o Header original do Streamlit */
+    /* 1. MATA O HEADER E O ESPAÇAMENTO DO TOPO */
     [data-testid="stHeader"] {display: none !important;}
     
-    /* 2. Zera o espaçamento do container principal e puxa para cima */
-    .main .block-container {
-        padding-top: 0rem !important;
-        padding-bottom: 0rem !important;
-        margin-top: -75px !important; /* Aumentado para zerar o vácuo */
-        max-width: 1100px !important;
-    }
-
-    /* 3. Remove o padding extra que o Streamlit coloca na visualização do App */
+    /* 2. ZERA O PADDING DO APP CONTAINER */
     [data-testid="stAppViewContainer"] {
         padding-top: 0rem !important;
     }
 
-    /* ESTÉTICA DARK MANTIDA */
+    /* 3. PUXA O CONTEÚDO PARA CIMA (MÁXIMA EFICIÊNCIA) */
+    .main .block-container {
+        padding-top: 0rem !important;
+        margin-top: -85px !important; /* Valor exato para colar o título no topo */
+        max-width: 1100px !important;
+    }
+
+    /* ESTÉTICA DARK */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
@@ -44,7 +43,7 @@ st.markdown("""
         text-transform: uppercase;
         text-align: center;
         letter-spacing: 2px;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
     }
 
     .record-counter {
@@ -67,6 +66,7 @@ st.markdown("""
         font-weight: bold;
     }
 
+    /* TABULEIRO CENTRALIZADO */
     .centered-image-container {
         display: flex !important;
         justify-content: center !important;
@@ -81,7 +81,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SETAS DE NAVEGAÇÃO CIRCULARES (BLINDADAS) --- */
+    /* --- SUAS SETAS CIRCULARES ORIGINAIS (CONSERVADAS) --- */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -99,7 +99,7 @@ st.markdown("""
         color: #D4AF37 !important;
     }
 
-    /* --- BOTÕES DA GESTÃO (RETANGULARES) --- */
+    /* --- BOTÕES DA GESTÃO (VOLTAM A SER RETÂNGULOS) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
@@ -124,12 +124,13 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título
+# Título colado no topo
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
+# Puxa lista de aberturas
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -140,10 +141,10 @@ if imgs:
     st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
-    img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
-    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
+    img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
+    st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
 
-    # Navegação
+    # NAVEGAÇÃO CENTRALIZADA (COMO VOCÊ GOSTA)
     _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
     with col2:
         if st.button("‹", key="prev"):
