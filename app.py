@@ -12,18 +12,21 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: ATAQUE AO ELEMENTO RAIZ
+# 2. CSS: ATAQUE À RAIZ DO STREAMLIT (ZERO VÁCUO)
 st.markdown("""
     <style>
-    /* 1. MATA O HEADER E O PADDING DO CONTEÚDO */
+    /* 1. ESCONDER HEADER E ZERAR PADDING DA APP */
     [data-testid="stHeader"] {display: none !important;}
-    [data-testid="stAppViewContainer"] {padding: 0 !important;}
-    [data-testid="stAppViewBlockContainer"] {padding: 0 !important;}
     
-    /* 2. ZERA O ESPAÇO NO TOPO DO BLOCO PRINCIPAL */
+    /* Zera o espaço superior de todas as camadas possíveis */
+    .stApp { margin-top: -80px !important; }
+    [data-testid="stAppViewContainer"] { padding-top: 0rem !important; }
+    [data-testid="stAppViewBlockContainer"] { padding-top: 0rem !important; }
+    
+    /* 2. COMPACTAÇÃO DO BLOCO PRINCIPAL */
     .main .block-container {
-        padding-top: 1rem !important;
-        margin-top: -90px !important; /* Puxa tudo para o teto */
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
         max-width: 1100px !important;
     }
 
@@ -77,7 +80,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SETAS ORIGINAIS (CÍRCULOS) --- */
+    /* --- SUAS SETAS CIRCULARES --- */
     div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
@@ -88,13 +91,14 @@ st.markdown("""
         border-radius: 50% !important;
         display: block;
         margin: 0 auto !important;
+        transition: 0.2s;
     }
     div.stButton > button:hover {
         border-color: #D4AF37 !important;
         color: #D4AF37 !important;
     }
 
-    /* --- GESTÃO (RETÂNGULOS) --- */
+    /* --- BOTÕES DA GESTÃO (RETÂNGULOS) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
@@ -119,7 +123,7 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título
+# Título colado
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
