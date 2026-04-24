@@ -4,7 +4,6 @@ from datetime import datetime
 
 st.set_page_config(page_title="Auditoria Xadrez - Vagner", layout="centered")
 
-# Estilo visual limpo
 st.markdown("""
     <style>
     .stImage { border-radius: 15px; border: 2px solid #444; }
@@ -14,12 +13,11 @@ st.markdown("""
 
 st.title("♟️ Auditoria: Rumo aos +400")
 
-# Pasta para as imagens
 IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR):
     os.makedirs(IMG_DIR)
 
-# Barra Lateral para Upload
+# --- BARRA LATERAL: NOVO REGISTRO ---
 with st.sidebar:
     st.header("📥 Novo Registro")
     uploaded_file = st.file_uploader("Print do Erro", type=["jpg", "png", "jpeg"])
@@ -36,22 +34,43 @@ with st.sidebar:
             st.success("Registrado!")
             st.rerun()
 
-# Feed Principal (O "Rolo" de imagens que você pediu)
-st.subheader("Seu Feed de Evolução (Scroll)")
+# --- FEED PRINCIPAL: SCROLL COM GESTÃO ---
+st.subheader("Seu Feed de Evolução")
 
-if os.path.exists(IMG_DIR):
-    images = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
-    images.sort(reverse=True) # Mais recentes primeiro
+images = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
+images.sort(reverse=True)
 
-    if not images:
-        st.info("Nenhuma jogada auditada ainda. Suba seus prints pela barra lateral!")
+if not images:
+    st.info("Nenhuma jogada auditada ainda.")
 
-    for img in images:
-        path = os.path.join(IMG_DIR, img)
-        txt_path = path.replace(".jpg", ".txt")
+for img in images:
+    path = os.path.join(IMG_DIR, img)
+    txt_path = path.replace(".jpg", ".txt")
+    
+    # Exibe a imagem
+    st.image(path, use_container_width=True)
+    
+    # Lógica de Edição e Exclusão
+    if os.path.exists(txt_path):
+        with open(txt_path, "r") as f:
+            texto_atual = f.read()
         
-        st.image(path, use_container_width=True)
-        if os.path.exists(txt_path):
-            with open(txt_path, "r") as f:
-                st.warning(f"**Insight:** {f.read()}")
-        st.write("---")
+        # Campo de edição simples
+        novo_texto = st.text_area("Editar Insight:", value=texto_atual, key=f"edit_{img}")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Atualizar Texto", key=f"btn_edit_{img}"):
+                with open(txt_path, "w") as f:
+                    f.write(novo_texto)
+                st.success("Texto atualizado!")
+                st.rerun()
+        
+        with col2:
+            if st.button("🗑️ Excluir Registro", key=f"del_{img}"):
+                os.remove(path)
+                os.remove(txt_path)
+                st.warning("Registro removido.")
+                st.rerun()
+    
+    st.write("---")
