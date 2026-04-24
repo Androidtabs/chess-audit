@@ -3,7 +3,7 @@ import os
 import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (TOPO ZERO - MANTIDO INTEGRALMENTE)
+# 1. CONFIGURAÇÃO BASE (INALTEÁVEL)
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
 def get_image_base64(path):
@@ -12,10 +12,10 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: TOPO PERFEITO + COMPACTAÇÃO DO RODAPÉ
+# 2. CSS: TOPO PERFEITO + AJUSTE DE ESPAÇAMENTO (O "ENTER")
 st.markdown("""
     <style>
-    /* --- SEU FIX DO TOPO (INALTEÁVEL) --- */
+    /* --- SEU FIX DO TOPO (MANTIDO) --- */
     [data-testid="stHeader"] {display: none !important;}
     .main .block-container {
         padding-top: 0rem !important;
@@ -83,9 +83,9 @@ st.markdown("""
     }
     div.stButton > button:hover { border-color: #D4AF37; color: #D4AF37; }
 
-    /* --- COMPACTAÇÃO DA GESTÃO --- */
+    /* --- AJUSTE DO "ENTER" (ESPAÇAMENTO) --- */
     .stExpander {
-        margin-top: -15px !important; /* Puxa o expander para cima */
+        margin-top: 10px !important; /* Devolve um pouco de espaço para não colar */
         border: 1px solid #1A1A1A !important;
     }
 
@@ -107,6 +107,7 @@ st.markdown("""
         font-size: 15px;
         color: #E0E0E0;
         margin-top: 10px;
+        margin-bottom: 15px; /* Espaço extra abaixo da legenda */
         text-align: center;
         max-width: 600px;
         margin-left: auto;
@@ -155,8 +156,8 @@ if imgs:
         with open(path_txt, "r") as f: texto_atual = f.read()
         st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {texto_atual}</div>', unsafe_allow_html=True)
 
-# GESTÃO COMPACTADA
-st.write("<br>", unsafe_allow_html=True) # Apenas um pulo de linha simples
+# GESTÃO COM RESPIRO
+st.write("") # Um pequeno enter em Python
 with st.expander("⚙️ GESTÃO DE DADOS (ADICIONAR / REMOVER / EDITAR)"):
     tab1, tab2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR OU REMOVER ATUAL"])
     
