@@ -3,7 +3,7 @@ import os
 import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE (SUA VERSÃO DE OURO)
+# 1. CONFIGURAÇÃO BASE
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
 def get_image_base64(path):
@@ -12,19 +12,22 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: TOPO ZERO + SETAS ORIGINAIS + BOTÃO DE BAIXO CORRIGIDO
+# 2. CSS: MATANDO O ESPAÇO DO TOPO + SETAS PERFEITAS
 st.markdown("""
     <style>
-    /* --- FIX DEFINITIVO DO TOPO (COLADO) --- */
+    /* --- REMOVE O ESPAÇO EM BRANCO DO TOPO --- */
     [data-testid="stHeader"] {display: none !important;}
+    
+    /* Zera o padding do container principal */
     .main .block-container {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
-        margin-top: -45px !important; /* Puxa o título para cima */
-        max-width: 1100px !important;
+        margin-top: -60px !important; /* Puxa o título totalmente para o topo */
     }
-    [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
-        padding-top: 0rem !important;
+
+    /* Esconde o elemento de ancoragem que o Streamlit cria no topo */
+    #root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.block-container > div:nth-child(1) {
+        display: none !important;
     }
 
     /* ESTÉTICA DARK */
@@ -36,13 +39,12 @@ st.markdown("""
 
     .header-text {
         font-family: 'Inter', sans-serif;
-        font-weight: 400;
-        letter-spacing: 2px;
         color: #444;
         margin-bottom: 5px;
         font-size: 11px;
         text-transform: uppercase;
         text-align: center;
+        letter-spacing: 2px;
     }
 
     .record-counter {
@@ -65,7 +67,6 @@ st.markdown("""
         font-weight: bold;
     }
 
-    /* CENTRALIZAÇÃO DO TABULEIRO */
     .centered-image-container {
         display: flex !important;
         justify-content: center !important;
@@ -80,8 +81,9 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
 
-    /* --- SUAS SETAS ORIGINAIS (VOLTARAM!) --- */
-    div.stButton > button {
+    /* --- SETAS DE NAVEGAÇÃO (CÍRCULOS) --- */
+    /* Seletor ultra-específico para não quebrar os botões de baixo */
+    .main [data-testid="column"] div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
         border: 1px solid #222 !important;
@@ -93,26 +95,24 @@ st.markdown("""
         margin: 0 auto !important;
         transition: 0.2s;
     }
-    div.stButton > button:hover {
+    .main [data-testid="column"] div.stButton > button:hover {
         border-color: #D4AF37 !important;
         color: #D4AF37 !important;
     }
 
-    /* --- FIX APENAS PARA OS BOTÕES DENTRO DA GESTÃO --- */
+    /* --- BOTÕES DA GESTÃO (RETÂNGULOS) --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
-        height: auto !important;
-        aspect-ratio: auto !important;
-        padding: 10px !important;
-        font-size: 14px !important;
+        height: 45px !important;
         background-color: #1A1A1A !important;
+        font-size: 14px !important;
+        text-transform: uppercase !important;
     }
 
     .insight-box {
         background-color: #111;
         padding: 15px;
-        border-radius: 4px;
         border-bottom: 2px solid #D4AF37;
         text-align: center;
         max-width: 600px;
@@ -126,12 +126,13 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
+# O Título agora vai ficar colado lá em cima
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
-# Lista de aberturas para o seletor
+# Puxa lista de aberturas
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -145,7 +146,7 @@ if imgs:
     img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
 
-    # --- NAVEGAÇÃO CENTRALIZADA (COMO ESTAVA ANTES) ---
+    # NAVEGAÇÃO CENTRALIZADA
     _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
     with col2:
         if st.button("‹", key="prev"):
@@ -163,11 +164,11 @@ if imgs:
 
 st.write("")
 with st.expander("⚙️ GESTÃO DE DADOS"):
-    t1, t2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR ATUAL"])
+    t1, t2 = st.tabs(["➕ NOVO", "📝 EDITAR"])
     with t1:
-        opcoes = ["-- Selecione uma existente --"] + aberturas_existentes + ["[ + CADASTRAR NOVA ]"]
-        escolha = st.selectbox("Escolha a Abertura:", opcoes)
-        nome_f = st.text_input("Nome da Nova Abertura:") if escolha == "[ + CADASTRAR NOVA ]" else (escolha if escolha != "-- Selecione uma existente --" else "")
+        opcoes = ["-- Selecione --"] + aberturas_existentes + ["[ + NOVA ]"]
+        escolha = st.selectbox("Abertura:", opcoes)
+        nome_f = st.text_input("Nome:") if escolha == "[ + NOVA ]" else (escolha if escolha != "-- Selecione --" else "")
         up_f = st.file_uploader("Imagem:", type=["jpg", "png", "jpeg"])
         up_t = st.text_area("Insight:")
         if st.button("SALVAR REGISTRO"): 
@@ -183,7 +184,7 @@ with st.expander("⚙️ GESTÃO DE DADOS"):
             edt_t = st.text_area("Alterar Insight:", value="", key="edit_area")
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("ATUALIZAR DADOS"):
+                if st.button("ATUALIZAR"):
                     with open(os.path.join(IMG_DIR, curr.replace(".jpg", ".txt")), "w") as f: f.write(edt_t)
                     st.rerun()
             with c2:
