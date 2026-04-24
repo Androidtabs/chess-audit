@@ -12,41 +12,47 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: TOPO ZERO + NAVEGAÇÃO CENTRAL + GESTÃO BLINDADA
+# 2. CSS: TOPO ZERO + SETAS ORIGINAIS + BOTÃO DE BAIXO CORRIGIDO
 st.markdown("""
     <style>
-    /* --- ZERANDO O TOPO (FIX DEFINITIVO) --- */
+    /* --- FIX DEFINITIVO DO TOPO (COLADO) --- */
     [data-testid="stHeader"] {display: none !important;}
-    
-    .main .block-container { 
-        padding-top: 0.5rem !important; 
-        padding-bottom: 0rem !important; 
-        margin-top: -50px !important; /* Puxa o conteúdo para o limite superior */
-        max-width: 1100px !important; 
+    .main .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+        margin-top: -45px !important; /* Puxa o título para cima */
+        max-width: 1100px !important;
     }
-    
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
     }
 
     /* ESTÉTICA DARK */
-    html, body, [class*="css"] { 
-        background-color: #080808 !important; 
-        color: #E0E0E0 !important; 
+    html, body, [class*="css"] {
+        background-color: #080808 !important;
+        color: #E0E0E0 !important;
         font-family: 'Inter', sans-serif;
     }
-    
-    .header-text { 
-        font-size: 11px; 
-        color: #444; 
-        text-transform: uppercase; 
-        text-align: center; 
+
+    .header-text {
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
         letter-spacing: 2px;
-        margin-bottom: 10px;
+        color: #444;
+        margin-bottom: 5px;
+        font-size: 11px;
+        text-transform: uppercase;
+        text-align: center;
     }
-    
-    .record-counter { color: #D4AF37; font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 5px; }
-    
+
+    .record-counter {
+        color: #D4AF37;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
     .opening-tag {
         background-color: #1A1A1A;
         color: #D4AF37;
@@ -59,36 +65,59 @@ st.markdown("""
         font-weight: bold;
     }
 
-    .centered-image-container { display: flex; justify-content: center; margin-bottom: 20px; }
-    .centered-image-container img { max-height: 58vh; border: 1px solid #222; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
-    
-    /* --- SETAS DE NAVEGAÇÃO (CÍRCULOS) --- */
-    /* Seletor específico para as setas de cima não afetar os botões de baixo */
-    .main [data-testid="column"] div.stButton > button { 
-        background: transparent !important; 
-        color: #666 !important; 
-        border: 1px solid #222 !important; 
-        height: 55px !important; 
-        width: 55px !important; 
-        border-radius: 50% !important; 
+    /* CENTRALIZAÇÃO DO TABULEIRO */
+    .centered-image-container {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+        margin-bottom: 20px;
+    }
+    .centered-image-container img {
+        max-height: 58vh !important;
+        width: auto !important;
+        border-radius: 4px;
+        border: 1px solid #222;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+    }
+
+    /* --- SUAS SETAS ORIGINAIS (VOLTARAM!) --- */
+    div.stButton > button {
+        background-color: transparent !important;
+        color: #666 !important;
+        border: 1px solid #222 !important;
+        height: 55px !important;
+        width: 55px !important;
         font-size: 22px !important;
+        border-radius: 50% !important;
         display: block;
         margin: 0 auto !important;
+        transition: 0.2s;
     }
-    .main [data-testid="column"] div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
+    div.stButton > button:hover {
+        border-color: #D4AF37 !important;
+        color: #D4AF37 !important;
+    }
 
-    /* --- FIX DOS BOTÕES DE GESTÃO NO EXPANDER --- */
+    /* --- FIX APENAS PARA OS BOTÕES DENTRO DA GESTÃO --- */
     .stExpander div.stButton > button {
         border-radius: 4px !important;
         width: 100% !important;
-        height: 45px !important;
+        height: auto !important;
+        aspect-ratio: auto !important;
+        padding: 10px !important;
         font-size: 14px !important;
         background-color: #1A1A1A !important;
-        text-transform: uppercase !important;
-        border: 1px solid #333 !important;
     }
 
-    .insight-box { background: #111; padding: 15px; border-bottom: 2px solid #D4AF37; text-align: center; max-width: 600px; margin: 10px auto 15px auto; }
+    .insight-box {
+        background-color: #111;
+        padding: 15px;
+        border-radius: 4px;
+        border-bottom: 2px solid #D4AF37;
+        text-align: center;
+        max-width: 600px;
+        margin: 10px auto 15px auto;
+    }
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
@@ -97,13 +126,12 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-# Título colado
 st.markdown('<p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
 
-# Lista dinâmica de aberturas
+# Lista de aberturas para o seletor
 aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
 
 if imgs:
@@ -117,38 +145,38 @@ if imgs:
     img_base64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="centered-image-container"><img src="data:image/jpeg;base64,{img_base64}"></div>', unsafe_allow_html=True)
 
-    # NAVEGAÇÃO CENTRALIZADA
-    c1, c2, c3, c4 = st.columns([1, 0.08, 0.08, 1])
-    with c2:
-        if st.button("‹", key="prev"): 
+    # --- NAVEGAÇÃO CENTRALIZADA (COMO ESTAVA ANTES) ---
+    _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
+    with col2:
+        if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
             st.rerun()
-    with c3:
-        if st.button("›", key="next"): 
+    with col3:
+        if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
             st.rerun()
 
     path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
     if os.path.exists(path_txt):
-        with open(path_txt, "r") as f: 
+        with open(path_txt, "r") as f:
             st.markdown(f'<div class="insight-box"><b>ANÁLISE:</b> {f.read()}</div>', unsafe_allow_html=True)
 
 st.write("")
-with st.expander("⚙️ GESTÃO DE DADOS (CADASTRAR ABERTURAS)"):
+with st.expander("⚙️ GESTÃO DE DADOS"):
     t1, t2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR ATUAL"])
     with t1:
         opcoes = ["-- Selecione uma existente --"] + aberturas_existentes + ["[ + CADASTRAR NOVA ]"]
-        escolha = st.selectbox("Escolha a Abertura do Adversário:", opcoes)
-        nome_final = st.text_input("Nome da Nova Abertura:") if escolha == "[ + CADASTRAR NOVA ]" else (escolha if escolha != "-- Selecione uma existente --" else "")
-        n_f = st.file_uploader("Imagem:", type=["jpg", "png", "jpeg"])
-        n_t = st.text_area("Insight:")
+        escolha = st.selectbox("Escolha a Abertura:", opcoes)
+        nome_f = st.text_input("Nome da Nova Abertura:") if escolha == "[ + CADASTRAR NOVA ]" else (escolha if escolha != "-- Selecione uma existente --" else "")
+        up_f = st.file_uploader("Imagem:", type=["jpg", "png", "jpeg"])
+        up_t = st.text_area("Insight:")
         if st.button("SALVAR REGISTRO"): 
-            if n_f and n_t and nome_final:
+            if up_f and up_t and nome_f:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                nome_limpo = nome_final.replace(" ", "-").strip()
+                nome_limpo = nome_f.replace(" ", "-").strip()
                 base = os.path.join(IMG_DIR, f"{nome_limpo}_{ts}")
-                with open(f"{base}.jpg", "wb") as f: f.write(n_f.getbuffer())
-                with open(f"{base}.txt", "w") as f: f.write(n_t)
+                with open(f"{base}.jpg", "wb") as f: f.write(up_f.getbuffer())
+                with open(f"{base}.txt", "w") as f: f.write(up_t)
                 st.rerun()
     with t2:
         if imgs:
