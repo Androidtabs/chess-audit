@@ -2,10 +2,10 @@ import streamlit as st
 import os
 from datetime import datetime
 
-# 1. MANTENDO SUA CONFIGURAÇÃO ORIGINAL
+# 1. MANTENDO SUA CONFIGURAÇÃO ORIGINAL DE SUCESSO
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. CSS: SUA BASE FUNCIONAL + REFINAMENTO DE DESIGN
+# 2. CSS: SUA BASE FUNCIONAL COM AJUSTE DE CENTRALIZAÇÃO E BOTÕES
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
@@ -16,74 +16,74 @@ st.markdown("""
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         margin-top: -30px !important;
-        max-width: 1150px !important;
+        max-width: 1200px !important;
     }
     [data-testid="stAppViewContainer"] > section:nth-child(2) > div:nth-child(1) {
         padding-top: 0rem !important;
     }
-    #root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.block-container {
-        padding-top: 0rem !important;
-    }
 
-    /* ESTÉTICA DARK PREMIUM */
+    /* ESTÉTICA DARK PROFISSIONAL */
     html, body, [class*="css"] {
         background-color: #080808 !important;
         color: #E0E0E0 !important;
         font-family: 'Inter', sans-serif;
     }
 
-    /* TÍTULO CENTRALIZADO */
+    /* TÍTULO CENTRALIZADO E ELEGANTE */
     .header-text {
         font-family: 'Inter', sans-serif;
         font-weight: 300;
-        letter-spacing: 4px;
+        letter-spacing: 5px;
         color: #FFFFFF;
-        margin-top: 0px !important;
-        margin-bottom: 20px;
-        font-size: 13px;
+        margin-bottom: 25px;
+        font-size: 14px;
         text-transform: uppercase;
-        text-align: center; /* CENTRALIZADO */
-        opacity: 0.7;
+        text-align: center;
+        opacity: 0.8;
     }
 
-    /* IMAGEM DO TABULEIRO */
+    /* TABULEIRO CENTRALIZADO E NITIDEZ */
     img {
-        max-height: 62vh !important;
+        max-height: 60vh !important;
         width: auto !important;
-        margin: 0 auto;
-        display: block;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        display: block !important;
         border-radius: 4px;
         border: 1px solid #1A1A1A;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.9);
     }
 
     /* BOX DE ANÁLISE REFINADO */
     .insight-box {
         background-color: #0E0E0E;
-        padding: 20px 40px;
+        padding: 20px 30px;
         border-radius: 4px;
         border-bottom: 2px solid #D4AF37;
         font-size: 15px;
         color: #CCCCCC;
-        margin-top: 15px;
+        margin-top: 20px;
         line-height: 1.6;
         text-align: center;
-        max-width: 850px;
+        max-width: 600px;
         margin-left: auto;
         margin-right: auto;
     }
 
-    /* BOTÕES LATERAIS (MENORES E CENTRALIZADOS) */
+    /* BOTÕES LATERAIS MENORES E MAIS ORGANIZADOS */
     div.stButton > button {
         background-color: transparent !important;
         color: #444 !important;
         border: 1px solid #1A1A1A !important;
-        height: 120px !important; /* REDUZIDO */
-        width: 100% !important;
-        font-size: 25px !important;
+        height: 80px !important; /* Menor e mais discreto */
+        width: 80px !important;
+        font-size: 24px !important;
         transition: 0.3s ease;
-        border-radius: 8px;
-        margin-top: 180px; /* ALINHAMENTO VERTICAL AO CENTRO DO TABULEIRO */
+        border-radius: 50%; /* Formato circular para elegância */
+        margin-top: 200px; /* Alinhamento central com o tabuleiro */
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     div.stButton > button:hover {
@@ -92,7 +92,7 @@ st.markdown("""
         background-color: rgba(212, 175, 55, 0.05) !important;
     }
 
-    /* LIMPEZA GERAL */
+    /* LIMPEZA DE UI */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
@@ -117,8 +117,8 @@ else:
     path_img = os.path.join(IMG_DIR, curr)
     path_txt = path_img.replace(".jpg", ".txt")
 
-    # DISPLAY CENTRAL (MANTENDO SUAS PROPORÇÕES)
-    c_ant, c_mid, c_prox = st.columns([0.6, 8, 0.6])
+    # GRID DE COLUNAS EQUILIBRADO PARA CENTRALIZAR O TABULEIRO
+    c_ant, c_mid, c_prox = st.columns([2, 5, 2])
     
     with c_ant:
         if st.button("‹", key="prev"):
@@ -136,9 +136,9 @@ else:
             st.session_state.idx = (st.session_state.idx + 1) % total
             st.rerun()
 
-    st.markdown(f"<p style='text-align:center; color:#111; font-size:10px; margin-top:15px;'>DATA_POINT {st.session_state.idx + 1} / {total}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center; color:#1a1a1a; font-size:10px; margin-top:20px;'>{st.session_state.idx + 1} / {total}</p>", unsafe_allow_html=True)
 
-# GESTÃO OCULTA (MANTIDA)
+# GESTÃO OCULTA
 st.write("<br>"*2, unsafe_allow_html=True)
 with st.expander("DADOS E PROPRIEDADES"):
     c1, c2 = st.columns(2)
