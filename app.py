@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: DESIGN TÁTICO E NAVEGAÇÃO
+# 2. CSS: DESIGN TÁTICO
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -38,7 +38,7 @@ st.markdown("""
     .status-awaiting { background-color: rgba(255, 50, 50, 0.1); color: #FF3232; border: 1px solid #FF3232; }
 
     .stButton > button { width: 100% !important; background-color: #1a1a1a !important; color: #eee !important; border: 1px solid #333 !important; border-radius: 20px !important; height: 40px !important;}
-    .stButton > button:disabled { background-color: #080808 !important; color: #222 !important; border-color: #111 !important; }
+    .stButton > button:disabled { background-color: #080808 !important; color: #222 !important; border-color: #111 !important; opacity: 0.3; }
     
     footer {visibility: hidden;}
     </style>
@@ -48,6 +48,7 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 imgs = [f for f in sorted(os.listdir(IMG_DIR)) if f.endswith(".jpg")]
 
+# Controle de Sessão
 if 'idx' not in st.session_state: st.session_state.idx = 0
 if 'studied_list' not in st.session_state: st.session_state.studied_list = {}
 
@@ -55,9 +56,10 @@ st.markdown('<div class="custom-header"><h1>Chess Strategy Lab // Estudo de Aber
 col_left, col_right = st.columns([1.5, 1], gap="large")
 
 if imgs:
-    # Função para o Salto Rápido (Sincronizada)
-    def handle_jump():
-        st.session_state.idx = st.session_state.nav_input - 1
+    # Função para quando você digita o número manualmente
+    def jump_to_pos():
+        # O valor digitado vira o novo idx (ajustado para 0-index)
+        st.session_state.idx = st.session_state.new_pos - 1
 
     curr = imgs[st.session_state.idx]
     path_jpg = os.path.join(IMG_DIR, curr)
@@ -69,18 +71,20 @@ if imgs:
         st.markdown(f'<div style="display:flex; justify-content:center;"><img src="data:image/jpeg;base64,{img_64}" style="max-width:85%; border-radius:4px; border:1px solid #222; box-shadow: 0 40px 100px rgba(0,0,0,1);"></div>', unsafe_allow_html=True)
 
     with col_right:
-        # NAVEGAÇÃO (A mágica da sincronização acontece aqui)
+        # NAVEGAÇÃO
         st.markdown('<p class="label-tech">Navegação</p>', unsafe_allow_html=True)
         c_in, c_tot = st.columns([0.4, 1])
         with c_in:
+            # Aqui está o segredo: o 'value' depende do idx, mas não forçamos a key manualmente no código
             st.number_input("Pos", min_value=1, max_value=len(imgs), value=st.session_state.idx + 1, 
-                            key="nav_input", on_change=handle_jump, label_visibility="collapsed")
+                            key="new_pos", on_change=jump_to_pos, label_visibility="collapsed")
         with c_tot:
             st.markdown(f'<div class="total-display">/ {len(imgs)}</div>', unsafe_allow_html=True)
 
         is_studied = st.session_state.studied_list.get(curr, False)
         st.markdown(f'<div class="status-badge {"status-studied" if is_studied else "status-awaiting"}">{"✓ Estudo Concluído" if is_studied else "⚠ Aguardando Estudo"}</div>', unsafe_allow_html=True)
 
+        # Dados da Base
         my_opening = "NÃO INFORMADA"
         if os.path.exists(path_op):
             with open(path_op, "r") as f: my_opening = f.read()
@@ -91,17 +95,15 @@ if imgs:
         st.markdown('<p class="label-tech">Variante do Adversário</p>', unsafe_allow_html=True)
         st.markdown(f'<div class="data-display-box"><p class="opp-line-text">{curr.split("_")[0].replace("-", " ")}</p></div>', unsafe_allow_html=True)
 
-        # BOTÕES: Atualizam o IDX e o NAV_INPUT simultaneamente
+        # BOTÕES: Apenas atualizam o IDX e dão rerun
         c_p, c_n = st.columns(2)
         with c_p: 
             if st.button("‹ VOLTAR", disabled=(st.session_state.idx <= 0)):
                 st.session_state.idx -= 1
-                st.session_state.nav_input = st.session_state.idx + 1 # Força sincronia
                 st.rerun()
         with c_n: 
             if st.button("AVANÇAR ›", disabled=(st.session_state.idx >= len(imgs) - 1)):
                 st.session_state.idx += 1
-                st.session_state.nav_input = st.session_state.idx + 1 # Força sincronia
                 st.rerun()
 
         st.write("")
@@ -115,7 +117,7 @@ if imgs:
                 with open(path_txt, "r") as f:
                     st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color:#bbb; font-size:14px; line-height:1.6;">{f.read()}</div>', unsafe_allow_html=True)
 
-# 3. GESTÃO COMPLETA (EDIÇÃO DE IMAGEM E VARIANTE)
+# 3. GESTÃO (TUDO EM UM LUGAR)
 st.write("---")
 with st.expander("⚙️ BASE DE DADOS"):
     t1, t2 = st.tabs(["NOVO REGISTRO", "EDITAR ATUAL"])
@@ -138,17 +140,14 @@ with st.expander("⚙️ BASE DE DADOS"):
             e_my_op = st.text_input("Sua Abertura:", value=my_opening, key="e_op")
             e_adv_var = st.text_input("Variante Adversário:", value=curr.split("_")[0].replace("-", " "), key="e_adv")
             e_img = st.file_uploader("Trocar Imagem (opcional):", type=["jpg", "png"], key="e_img")
-            
             curr_an = ""
             if os.path.exists(path_txt):
                 with open(path_txt, "r") as f: curr_an = f.read()
             e_an = st.text_area("Análise:", value=curr_an, key="e_an")
-            
             if st.button("ATUALIZAR BASE"):
                 new_prefix = e_adv_var.replace(" ", "-")
                 old_prefix = curr.split("_")[0]
                 target_curr = curr
-                
                 if new_prefix != old_prefix:
                     ts = curr.split("_", 1)[1]
                     new_name = f"{new_prefix}_{ts}"
@@ -156,10 +155,8 @@ with st.expander("⚙️ BASE DE DADOS"):
                     os.rename(path_txt, os.path.join(IMG_DIR, new_name.replace(".jpg", ".txt")))
                     os.rename(path_op, os.path.join(IMG_DIR, new_name.replace(".jpg", "_op.txt")))
                     target_curr = new_name
-                
                 if e_img:
                     with open(os.path.join(IMG_DIR, target_curr), "wb") as f: f.write(e_img.getbuffer())
-                
                 with open(os.path.join(IMG_DIR, target_curr.replace(".jpg", "_op.txt")), "w") as f: f.write(e_my_op)
                 with open(os.path.join(IMG_DIR, target_curr.replace(".jpg", ".txt")), "w") as f: f.write(e_an)
                 st.rerun()
