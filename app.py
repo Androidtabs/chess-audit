@@ -12,14 +12,18 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: DESIGN PREMIUM + LÓGICA DE REVELAÇÃO
+# 2. CSS: DESIGN PREMIUM E CORREÇÃO DE BOTÕES
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
+    
+    /* AJUSTE DO TOPO PARA REMOVER ESPAÇO EM BRANCO */
     .stApp { margin-top: -85px !important; }
     [data-testid="stAppViewContainer"] { padding-top: 0rem !important; }
+    [data-testid="stAppViewBlockContainer"] { padding-top: 0rem !important; }
     .main .block-container { padding-top: 0rem !important; max-width: 1100px !important; }
 
+    /* ESTÉTICA DARK */
     html, body, [class*="css"] { 
         background-color: #080808 !important; 
         color: #E0E0E0 !important; 
@@ -40,44 +44,59 @@ st.markdown("""
         font-size: 13px; display: inline-block; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;
     }
 
-    /* ESTILO DA IMAGEM CLICÁVEL */
-    .img-container {
-        display: flex; justify-content: center; position: relative; cursor: pointer;
-    }
-    .img-container img {
+    /* CONTAINER DO TABULEIRO */
+    .img-display-container { display: flex; justify-content: center; margin-bottom: 15px; }
+    .img-display-container img {
         max-height: 58vh; border: 1px solid #222; border-radius: 8px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .img-container img:hover {
-        box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+        box-shadow: 0 20px 60px rgba(0,0,0,1);
     }
 
-    /* CAIXA DE ANÁLISE (FADE IN) */
+    /* --- ESTILO DAS SETAS (CÍRCULOS) --- */
+    .stHorizontalBlock div.stButton > button {
+        background-color: transparent !important; 
+        color: #444 !important; 
+        border: 1px solid #1A1A1A !important;
+        height: 55px !important; 
+        width: 55px !important; 
+        border-radius: 50% !important; 
+        margin: 0 auto !important;
+        font-size: 22px !important;
+    }
+    .stHorizontalBlock div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
+
+    /* --- ESTILO DO BOTÃO REVELAR (RETÂNGULO CENTRAL) --- */
+    /* Garante que o botão de revelar não vire um círculo esmagado */
+    div.stButton > button[kind="secondary"] {
+        border-radius: 4px !important;
+        width: 320px !important; 
+        height: 48px !important;
+        margin: 0 auto !important;
+        background-color: #111 !important;
+        color: #D4AF37 !important;
+        border: 1px solid #222 !important;
+        font-size: 14px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        display: block !important;
+    }
+
+    /* CAIXA DE ANÁLISE REVELADA */
     .revealed-box {
-        background-color: #0A0A0A;
-        padding: 20px;
-        border-left: 3px solid #D4AF37;
-        text-align: center;
-        max-width: 650px;
-        margin: 20px auto;
-        color: #BBB;
-        font-size: 14px;
-        line-height: 1.6;
-        animation: fadeIn 0.5s ease;
+        background-color: #0A0A0A; padding: 25px; border-left: 3px solid #D4AF37;
+        text-align: center; max-width: 650px; margin: 25px auto; color: #BBB;
+        font-size: 15px; line-height: 1.6; animation: fadeIn 0.5s ease;
+        border-radius: 0 8px 8px 0;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* BOTÕES CIRCULARES */
-    div.stButton > button {
-        background-color: transparent !important; color: #444 !important; border: 1px solid #1A1A1A !important;
-        height: 55px !important; width: 55px !important; border-radius: 50% !important; margin: 0 auto !important;
-    }
-    div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
-
-    /* BOTÕES GESTÃO */
+    /* BOTÕES DENTRO DA GESTÃO */
     .stExpander div.stButton > button {
-        border-radius: 4px !important; width: 100% !important; height: 45px !important;
-        background-color: #111 !important; color: #D4AF37 !important; border: 1px solid #222 !important;
+        border-radius: 4px !important; 
+        width: 100% !important; 
+        height: 45px !important;
+        background-color: #111 !important; 
+        color: #D4AF37 !important; 
+        border: 1px solid #222 !important;
     }
 
     footer {visibility: hidden;}
@@ -87,10 +106,11 @@ st.markdown("""
 IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 
-# Inicializa estados de sessão
+# Inicialização de estados
 if 'idx' not in st.session_state: st.session_state.idx = 0
 if 'revelar' not in st.session_state: st.session_state.revelar = False
 
+# Cabeçalho Premium
 st.markdown('<div class="header-container"><p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p></div>', unsafe_allow_html=True)
 
 imgs = [f for f in sorted(os.listdir(IMG_DIR)) if f.endswith(".jpg")]
@@ -104,43 +124,38 @@ if imgs:
     st.markdown(f'<p class="record-counter">ESTUDO {st.session_state.idx + 1} DE {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
-    # TABULEIRO CLICÁVEL
+    # Exibição da Imagem
     img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
+    st.markdown(f'<div class="img-display-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
     
-    # Usamos uma coluna central para conter a imagem e o "botão invisível" de toggle
-    _, center_col, _ = st.columns([1, 4, 1])
-    with center_col:
-        # Mostra a imagem
-        st.markdown(f'<div class="img-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
-        
-        # Botão de Revelação logo abaixo da imagem
-        label_btn = "OCULTAR ANÁLISE" if st.session_state.revelar else "REVELAR ANÁLISE"
-        if st.button(label_btn, key="btn_revelar", use_container_width=True):
-            st.session_state.revelar = not st.session_state.revelar
-            st.rerun()
+    # Botão de Revelação (Centralizado)
+    label_btn = "OCULTAR ANÁLISE" if st.session_state.revelar else "REVELAR ANÁLISE"
+    if st.button(label_btn, key="btn_revelar"):
+        st.session_state.revelar = not st.session_state.revelar
+        st.rerun()
 
-        # Exibe o texto se estiver em modo revelar
-        if st.session_state.revelar:
-            path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
-            if os.path.exists(path_txt):
-                with open(path_txt, "r") as f:
-                    conteudo = f.read()
-                st.markdown(f'<div class="revealed-box"><b>INSIGHT TÉCNICO:</b><br>{conteudo}</div>', unsafe_allow_html=True)
+    # Conteúdo Revelado
+    if st.session_state.revelar:
+        path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
+        if os.path.exists(path_txt):
+            with open(path_txt, "r") as f: conteudo = f.read()
+            st.markdown(f'<div class="revealed-box"><b>INSIGHT TÉCNICO:</b><br>{conteudo}</div>', unsafe_allow_html=True)
 
-    # NAVEGAÇÃO
-    _, col2, col3, _ = st.columns([1, 0.08, 0.08, 1])
-    with col2:
+    # Navegação (Setas)
+    st.write("")
+    c1, c2, c3, c4 = st.columns([1, 0.08, 0.08, 1])
+    with c2:
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
-            st.session_state.revelar = False # Esconde ao mudar
+            st.session_state.revelar = False
             st.rerun()
-    with col3:
+    with c3:
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
-            st.session_state.revelar = False # Esconde ao mudar
+            st.session_state.revelar = False
             st.rerun()
 
-# 3. GESTÃO DE DADOS (COMPLETA)
+# 3. GESTÃO DE DADOS (CADASTRAR E EDITAR)
 st.write("")
 with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
     t1, t2 = st.tabs(["➕ NOVO REGISTRO", "📝 EDITAR ATUAL"])
@@ -164,7 +179,6 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
             txt_atual = ""
             if os.path.exists(path_txt_edit):
                 with open(path_txt_edit, "r") as f: txt_atual = f.read()
-                
             edt_t = st.text_area("Editar Análise:", value=txt_atual, key="edit_area")
             c1, c2 = st.columns(2)
             with c1:
@@ -172,6 +186,6 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
                     with open(path_txt_edit, "w") as f: f.write(edt_t); st.rerun()
             with c2:
                 if st.button("🗑️ DELETAR"):
-                    os.remove(os.path.join(IMG_DIR, curr))
-                    os.remove(path_txt_edit)
+                    if os.path.exists(os.path.join(IMG_DIR, curr)): os.remove(os.path.join(IMG_DIR, curr))
+                    if os.path.exists(path_txt_edit): os.remove(path_txt_edit)
                     st.session_state.idx = 0; st.rerun()
