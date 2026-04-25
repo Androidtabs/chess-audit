@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: CENTRALIZAÇÃO ABSOLUTA VIA FLEXBOX
+# 2. CSS: BARRA DE CONTROLE UNIFICADA
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -33,62 +33,59 @@ st.markdown("""
     }
 
     .header-text { font-size: 12px; color: #888; text-transform: uppercase; text-align: center; letter-spacing: 4px; font-weight: 300; margin: 0; }
-    .record-counter { color: #D4AF37; font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 5px; }
+    .record-counter { color: #D4AF37; font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 5px; }
 
     .opening-tag {
         background-color: #111; color: #D4AF37; padding: 5px 18px; border-radius: 2px; border: 1px solid #222;
-        font-size: 13px; display: inline-block; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;
+        font-size: 13px; display: inline-block; margin-bottom: 15px; font-weight: bold; letter-spacing: 1px;
     }
 
-    /* CONTAINER DA IMAGEM */
     .img-display-container { display: flex; justify-content: center; margin-bottom: 20px; }
-    .img-display-container img { max-height: 58vh; border: 1px solid #222; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,1); }
+    .img-display-container img { max-height: 55vh; border: 1px solid #222; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,1); }
 
-    /* --- ESTILO DO BOTÃO REVELAR (CENTRALIZADO) --- */
-    div.stButton > button[kind="secondary"] {
-        display: block !important;
-        margin: 0 auto 15px auto !important;
-        width: 320px !important;
-        height: 48px !important;
-        border-radius: 4px !important;
-        background-color: #111 !important;
-        color: #D4AF37 !important;
-        border: 1px solid #222 !important;
-        text-transform: uppercase !important;
-        font-weight: bold !important;
-    }
-
-    /* --- CONTAINER DE NAVEGAÇÃO (FORÇANDO CENTRO) --- */
-    /* Esse seletor ataca o div que o Streamlit cria para as colunas */
+    /* --- ESTILIZAÇÃO DA BARRA DE CONTROLE --- */
+    /* Garante que os botões fiquem alinhados na mesma linha horizontal */
     [data-testid="column"] {
         display: flex !important;
         justify-content: center !important;
-        width: 100% !important;
+        align-items: center !important;
+        gap: 0 !important;
     }
 
-    /* SETAS DE NAVEGAÇÃO */
-    .nav-btn-container div.stButton > button {
+    /* Estilo das Setas */
+    .nav-btn div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
         border: 1px solid #1A1A1A !important;
-        height: 55px !important;
-        width: 55px !important;
+        height: 50px !important;
+        width: 50px !important;
         border-radius: 50% !important;
-        font-size: 24px !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 0 10px !important; /* Espaçamento entre as setas */
+        font-size: 20px !important;
+        transition: 0.3s;
     }
-    .nav-btn-container div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
+    .nav-btn div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
 
-    /* ANÁLISE REVELADA */
-    .revealed-box {
-        background-color: #0A0A0A; padding: 25px; border-left: 3px solid #D4AF37;
-        text-align: center; max-width: 650px; margin: 25px auto; color: #BBB;
-        font-size: 15px; line-height: 1.6; animation: fadeIn 0.5s ease;
+    /* Estilo do Botão Central (Revelar) */
+    .reveal-btn div.stButton > button {
+        width: 220px !important;
+        height: 50px !important;
+        background-color: #111 !important;
+        color: #D4AF37 !important;
+        border: 1px solid #222 !important;
+        border-radius: 4px !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        letter-spacing: 1px !important;
+        margin: 0 15px !important;
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* CAIXA DE ANÁLISE */
+    .revealed-box {
+        background-color: #0A0A0A; padding: 20px; border-left: 3px solid #D4AF37;
+        text-align: center; max-width: 600px; margin: 20px auto; color: #BBB;
+        font-size: 14px; line-height: 1.6; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     footer {visibility: hidden;}
     </style>
@@ -110,45 +107,45 @@ if imgs:
     curr = imgs[st.session_state.idx]
     nome_exibicao = curr.split("_")[0].replace("-", " ")
     
-    st.markdown(f'<p class="record-counter">ESTUDO {st.session_state.idx + 1} DE {len(imgs)}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
-    # 1. IMAGEM
     img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
     st.markdown(f'<div class="img-display-container"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
     
-    # 2. BOTÃO REVELAR
-    label_btn = "OCULTAR ANÁLISE" if st.session_state.revelar else "REVELAR ANÁLISE"
-    if st.button(label_btn, key="btn_revelar"):
-        st.session_state.revelar = not st.session_state.revelar
-        st.rerun()
-
-    if st.session_state.revelar:
-        path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
-        if os.path.exists(path_txt):
-            with open(path_txt, "r") as f: conteudo = f.read()
-            st.markdown(f'<div class="revealed-box"><b>INSIGHT TÉCNICO:</b><br>{conteudo}</div>', unsafe_allow_html=True)
-
-    # 3. NAVEGAÇÃO (SETAS CENTRALIZADAS COM CSS FIXO)
-    st.markdown('<div class="nav-btn-container">', unsafe_allow_html=True)
-    col_l, col_r = st.columns([1, 1])
-    with col_l:
-        # Puxamos o botão para a direita da coluna da esquerda
-        st.markdown('<div style="display: flex; justify-content: flex-end;">', unsafe_allow_html=True)
+    # 3. BARRA DE CONTROLE CENTRALIZADA
+    # Usamos 3 colunas para garantir que fiquem colados
+    col_prev, col_rev, col_next = st.columns([0.2, 0.4, 0.2], gap="small")
+    
+    with col_prev:
+        st.markdown('<div class="nav-btn">', unsafe_allow_html=True)
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
             st.session_state.revelar = False
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
-    with col_r:
-        # Puxamos o botão para a esquerda da coluna da direita
-        st.markdown('<div style="display: flex; justify-content: flex-start;">', unsafe_allow_html=True)
+
+    with col_rev:
+        st.markdown('<div class="reveal-btn">', unsafe_allow_html=True)
+        label_btn = "OCULTAR" if st.session_state.revelar else "REVELAR ANÁLISE"
+        if st.button(label_btn, key="btn_revelar"):
+            st.session_state.revelar = not st.session_state.revelar
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_next:
+        st.markdown('<div class="nav-btn">', unsafe_allow_html=True)
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
             st.session_state.revelar = False
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+
+    if st.session_state.revelar:
+        path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
+        if os.path.exists(path_txt):
+            with open(path_txt, "r") as f: conteudo = f.read()
+            st.markdown(f'<div class="revealed-box">{conteudo}</div>', unsafe_allow_html=True)
 
 # 4. GESTÃO
 st.write("")
@@ -159,8 +156,8 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
         escolha = st.selectbox("Abertura:", opcoes)
         nome_f = st.text_input("Nome:") if escolha == "[ + NOVA ]" else (escolha if escolha != "-- Selecione --" else "")
         up_f = st.file_uploader("Upload:", type=["jpg", "png", "jpeg"])
-        up_t = st.text_area("Análise:")
-        if st.button("SALVAR NA BASE"): 
+        up_t = st.text_area("Nota:")
+        if st.button("SALVAR"): 
             if up_f and up_t and nome_f:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 nome_limpo = nome_f.replace(" ", "-").strip()
@@ -175,11 +172,11 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
             if os.path.exists(path_txt_edit):
                 with open(path_txt_edit, "r") as f: txt_atual = f.read()
             edt_t = st.text_area("Editar:", value=txt_atual, key="edit_area")
-            c_ed1, c_ed2 = st.columns(2)
-            with c_ed1:
+            c1, c2 = st.columns(2)
+            with c1:
                 if st.button("ATUALIZAR"):
                     with open(path_txt_edit, "w") as f: f.write(edt_t); st.rerun()
-            with c_ed2:
+            with c2:
                 if st.button("🗑️ DELETAR"):
                     if os.path.exists(os.path.join(IMG_DIR, curr)): os.remove(os.path.join(IMG_DIR, curr))
                     if os.path.exists(path_txt_edit): os.remove(path_txt_edit)
