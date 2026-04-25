@@ -48,46 +48,56 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 imgs = [f for f in sorted(os.listdir(IMG_DIR)) if f.endswith(".jpg")]
 
-# --- GERENCIAMENTO DE ESTADO ---
-if 'idx' not in st.session_state: st.session_state.idx = 0
-if 'studied_list' not in st.session_state: st.session_state.studied_list = {}
+# --- LÓGICA DE ESTADO (CRÍTICA) ---
+if 'idx' not in st.session_state:
+    st.session_state.idx = 0
 
-# Sincroniza o valor do input com o índice atual
-if 'nav_val' not in st.session_state:
-    st.session_state.nav_val = st.session_state.idx + 1
+# Se a chave do input não existe, criamos ela com base no idx
+if 'nav_input' not in st.session_state:
+    st.session_state.nav_input = st.session_state.idx + 1
 
+if 'studied_list' not in st.session_state:
+    st.session_state.studied_list = {}
+
+# Função para quando o usuário digita o número no HUD
+def sync_from_input():
+    st.session_state.idx = st.session_state.nav_input - 1
+
+# Título
 st.markdown('<div class="custom-header"><h1>Chess Strategy Lab // Estudo de Aberturas</h1></div>', unsafe_allow_html=True)
 col_left, col_right = st.columns([1.5, 1], gap="large")
 
 if imgs:
-    # Função para quando você edita o número manualmente
-    def update_by_input():
-        st.session_state.idx = st.session_state.nav_val - 1
-
+    # Garantia de limites
+    st.session_state.idx = max(0, min(st.session_state.idx, len(imgs) - 1))
+    
     curr = imgs[st.session_state.idx]
     path_jpg = os.path.join(IMG_DIR, curr)
     path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
     path_op = os.path.join(IMG_DIR, curr.replace(".jpg", "_op.txt"))
 
+    # ESQUERDA: Tabuleiro
     with col_left:
         img_64 = get_image_base64(path_jpg)
         st.markdown(f'<div style="display:flex; justify-content:center;"><img src="data:image/jpeg;base64,{img_64}" style="max-width:85%; border-radius:4px; border:1px solid #222; box-shadow: 0 40px 100px rgba(0,0,0,1);"></div>', unsafe_allow_html=True)
 
+    # DIREITA: Painel de Controle
     with col_right:
         # NAVEGAÇÃO
         st.markdown('<p class="label-tech">Navegação</p>', unsafe_allow_html=True)
         c_in, c_tot = st.columns([0.4, 1])
         with c_in:
-            # O 'value' é amarrado ao nav_val, e o nav_val é o que editamos nos botões
-            st.number_input("Pos", min_value=1, max_value=len(imgs), value=st.session_state.idx + 1,
-                            key="nav_val", on_change=update_by_input, label_visibility="collapsed")
+            # O input usa nav_input como key e chama sync_from_input se mudar
+            st.number_input("Pos", min_value=1, max_value=len(imgs), key="nav_input", 
+                            on_change=sync_from_input, label_visibility="collapsed")
         with c_tot:
             st.markdown(f'<div class="total-display">/ {len(imgs)}</div>', unsafe_allow_html=True)
 
+        # Status
         is_studied = st.session_state.studied_list.get(curr, False)
         st.markdown(f'<div class="status-badge {"status-studied" if is_studied else "status-awaiting"}">{"✓ Estudo Concluído" if is_studied else "⚠ Aguardando Estudo"}</div>', unsafe_allow_html=True)
 
-        # Dados da Base
+        # Dados
         my_opening = "NÃO INFORMADA"
         if os.path.exists(path_op):
             with open(path_op, "r") as f: my_opening = f.read()
@@ -98,19 +108,17 @@ if imgs:
         st.markdown('<p class="label-tech">Variante do Adversário</p>', unsafe_allow_html=True)
         st.markdown(f'<div class="data-display-box"><p class="opp-line-text">{curr.split("_")[0].replace("-", " ")}</p></div>', unsafe_allow_html=True)
 
-        # --- BOTÕES DE NAVEGAÇÃO ---
+        # BOTÕES: Aqui forçamos a atualização da KEY 'nav_input'
         c_p, c_n = st.columns(2)
         with c_p: 
             if st.button("‹ VOLTAR", disabled=(st.session_state.idx <= 0)):
                 st.session_state.idx -= 1
-                # Atualizamos o valor da KEY do input antes do rerun
-                st.session_state.nav_val = st.session_state.idx + 1
+                st.session_state.nav_input = st.session_state.idx + 1 # Força o valor no input
                 st.rerun()
         with c_n: 
             if st.button("AVANÇAR ›", disabled=(st.session_state.idx >= len(imgs) - 1)):
                 st.session_state.idx += 1
-                # Atualizamos o valor da KEY do input antes do rerun
-                st.session_state.nav_val = st.session_state.idx + 1
+                st.session_state.nav_input = st.session_state.idx + 1 # Força o valor no input
                 st.rerun()
 
         st.write("")
@@ -124,17 +132,16 @@ if imgs:
                 with open(path_txt, "r") as f:
                     st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color:#bbb; font-size:14px; line-height:1.6;">{f.read()}</div>', unsafe_allow_html=True)
 
-# 3. GESTÃO INTEGRADA (MANTIDA)
+# 3. GESTÃO (MANTIDA)
 st.write("---")
 with st.expander("⚙️ BASE DE DADOS"):
-    # (Código de cadastro e edição aqui abaixo)
     t1, t2 = st.tabs(["NOVO REGISTRO", "EDITAR ATUAL"])
     with t1:
         new_my_op = st.text_input("Sua Abertura:")
         new_adv_var = st.text_input("Variante do Adversário:")
-        u_f = st.file_uploader("Screenshot:", type=["jpg", "png"], key="upload_new")
+        u_f = st.file_uploader("Screenshot:", type=["jpg", "png"], key="u_new")
         u_t = st.text_area("Análise Técnica:")
-        if st.button("SALVAR REGISTRO"):
+        if st.button("SALVAR"):
             if new_my_op and new_adv_var and u_f and u_t:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 fn = f"{new_adv_var.replace(' ', '-')}_{ts}"
@@ -145,24 +152,23 @@ with st.expander("⚙️ BASE DE DADOS"):
     with t2:
         if imgs:
             st.write(f"Editando: `{curr}`")
-            e_my_op = st.text_input("Minha Abertura:", value=my_opening, key="e_my_op")
-            e_adv_var = st.text_input("Variante Adversário:", value=curr.split("_")[0].replace("-", " "), key="e_adv_var")
+            e_my_op = st.text_input("Minha Abertura:", value=my_opening, key="e_op")
+            e_adv_var = st.text_input("Variante Adversário:", value=curr.split("_")[0].replace("-", " "), key="e_adv")
             e_img = st.file_uploader("Trocar Imagem:", type=["jpg", "png"], key="e_img")
             curr_an = ""
             if os.path.exists(path_txt):
                 with open(path_txt, "r") as f: curr_an = f.read()
             e_an = st.text_area("Análise:", value=curr_an, key="e_an")
-            if st.button("ATUALIZAR"):
-                # Lógica de renomear e salvar (MANTIDA)
+            if st.button("ATUALIZAR BASE"):
                 new_prefix = e_adv_var.replace(" ", "-")
                 old_prefix = curr.split("_")[0]
                 t_curr = curr
                 if new_prefix != old_prefix:
                     ts = curr.split("_", 1)[1]
                     new_n = f"{new_prefix}_{ts}"
-                    os.rename(path_jpg, os.path.join(IMG_DIR, new_name))
-                    os.rename(path_txt, os.path.join(IMG_DIR, new_name.replace(".jpg", ".txt")))
-                    os.rename(path_op, os.path.join(IMG_DIR, new_name.replace(".jpg", "_op.txt")))
+                    os.rename(path_jpg, os.path.join(IMG_DIR, new_n))
+                    os.rename(path_txt, os.path.join(IMG_DIR, new_n.replace(".jpg", ".txt")))
+                    os.rename(path_op, os.path.join(IMG_DIR, new_n.replace(".jpg", "_op.txt")))
                     t_curr = new_n
                 if e_img:
                     with open(os.path.join(IMG_DIR, t_curr), "wb") as f: f.write(e_img.getbuffer())
