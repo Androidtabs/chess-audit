@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: DESIGN HUD E DISPLAYS DE DADOS
+# 2. CSS: DESIGN HUD REFINADO COM O NOME CORRETO
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -24,6 +24,7 @@ st.markdown("""
     }
     .main .block-container { padding: 1.5rem !important; max-width: 1350px !important; }
 
+    /* HEADER COM O NOME CORRETO */
     .custom-header {
         background: linear-gradient(180deg, #151515 0%, #0d0d0d 100%);
         border: 1px solid #222; border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 30px;
@@ -41,7 +42,6 @@ st.markdown("""
 
     .label-tech { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; font-weight: 600; }
     
-    /* DISPLAYS FIXOS (Puxados da Base) */
     .data-display-box {
         background: rgba(255, 255, 255, 0.03);
         padding: 15px;
@@ -74,7 +74,9 @@ imgs = [f for f in sorted(os.listdir(IMG_DIR)) if f.endswith(".jpg")]
 if 'idx' not in st.session_state: st.session_state.idx = 0
 if 'studied_list' not in st.session_state: st.session_state.studied_list = {}
 
-st.markdown('<div class="custom-header"><h1>Chess Strategy Lab // Auditoria de Aberturas</h1></div>', unsafe_allow_html=True)
+# TÍTULO CORRIGIDO
+st.markdown('<div class="custom-header"><h1>Chess Strategy Lab // Estudo de Aberturas</h1></div>', unsafe_allow_html=True)
+
 col_left, col_right = st.columns([1.5, 1], gap="large")
 
 if imgs:
@@ -86,9 +88,9 @@ if imgs:
         img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
         st.markdown(f'<div style="display:flex; justify-content:center;"><img src="data:image/jpeg;base64,{img_64}" style="max-width:85%; border-radius:4px; border:1px solid #222; box-shadow: 0 40px 100px rgba(0,0,0,1);"></div>', unsafe_allow_html=True)
 
-    # DIREITA: Painel de Controle (Display de Dados)
+    # DIREITA: Painel de Estudo
     with col_right:
-        # Navegação
+        # Navegação X / Y
         st.markdown('<p class="label-tech">Navegação</p>', unsafe_allow_html=True)
         c_in, c_tot = st.columns([0.4, 1])
         with c_in: st.number_input("Pos", min_value=1, max_value=len(imgs), value=st.session_state.idx + 1, key="nav_input", on_change=handle_jump, label_visibility="collapsed")
@@ -97,7 +99,7 @@ if imgs:
         is_studied = st.session_state.studied_list.get(curr, False)
         st.markdown(f'<div class="status-badge {"status-studied" if is_studied else "status-awaiting"}">{"✓ Estudo Concluído" if is_studied else "⚠ Aguardando Estudo"}</div>', unsafe_allow_html=True)
 
-        # --- CARREGAMENTO DE DADOS DA BASE ---
+        # Carregamento de Dados
         path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
         path_op = os.path.join(IMG_DIR, curr.replace(".jpg", "_op.txt"))
         
@@ -105,15 +107,14 @@ if imgs:
         if os.path.exists(path_op):
             with open(path_op, "r") as f: my_opening = f.read()
 
-        # EXIBIÇÃO FIXA: MINHA ABERTURA
-        st.markdown('<p class="label-tech">Minha Abertura (Base)</p>', unsafe_allow_html=True)
+        # EXIBIÇÃO: MINHA ABERTURA
+        st.markdown('<p class="label-tech">Minha Abertura</p>', unsafe_allow_html=True)
         st.markdown(f'<div class="data-display-box" style="border-left: 3px solid #D4AF37;"><p class="my-line-text">{my_opening}</p></div>', unsafe_allow_html=True)
 
-        # EXIBIÇÃO FIXA: RESPOSTA DO ADVERSÁRIO
-        st.markdown('<p class="label-tech">Variante do Adversário (Base)</p>', unsafe_allow_html=True)
+        # EXIBIÇÃO: VARIANTE DO ADVERSÁRIO
+        st.markdown('<p class="label-tech">Variante do Adversário</p>', unsafe_allow_html=True)
         st.markdown(f'<div class="data-display-box"><p class="opp-line-text">{curr.split("_")[0].replace("-", " ")}</p></div>', unsafe_allow_html=True)
 
-        # Navegação Sequencial
         c_p, c_n = st.columns(2)
         with c_p: 
             if st.button("‹ VOLTAR"): st.session_state.idx -= 1; st.rerun()
@@ -121,8 +122,8 @@ if imgs:
             if st.button("AVANÇAR ›"): st.session_state.idx += 1; st.rerun()
 
         st.write("")
-        st.markdown('<p class="label-tech">Controle de Auditoria</p>', unsafe_allow_html=True)
-        check = st.toggle("MARCAR COMO CONCLUÍDO", value=is_studied, key=f"chk_{curr}")
+        st.markdown('<p class="label-tech">Progresso de Estudo</p>', unsafe_allow_html=True)
+        check = st.toggle("CONCLUIR REVISÃO", value=is_studied, key=f"chk_{curr}")
         if check != is_studied: st.session_state.studied_list[curr] = check; st.rerun()
 
         if st.toggle("REVELAR ANÁLISE DA ABERTURA", value=False):
@@ -130,12 +131,12 @@ if imgs:
                 with open(path_txt, "r") as f:
                     st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color:#bbb; font-size:14px; line-height:1.6;">{f.read()}</div>', unsafe_allow_html=True)
 
-# 3. GESTÃO INTEGRADA
+# 3. GESTÃO
 st.write("")
-with st.expander("⚙️ BASE DE DADOS (CADASTRAR / EDITAR)"):
+with st.expander("⚙️ BASE DE DADOS"):
     t1, t2 = st.tabs(["NOVO REGISTRO", "EDITAR ATUAL"])
     with t1:
-        new_my_op = st.text_input("Sua Abertura (ex: Taimanov):")
+        new_my_op = st.text_input("Sua Abertura:")
         new_adv_var = st.text_input("Variante do Adversário:")
         u_f = st.file_uploader("Screenshot:", type=["jpg", "png"])
         u_t = st.text_area("Análise Técnica:")
@@ -149,19 +150,14 @@ with st.expander("⚙️ BASE DE DADOS (CADASTRAR / EDITAR)"):
                 st.rerun()
     with t2:
         if imgs:
-            st.write(f"Editando: {curr}")
-            # Puxar dados atuais para os campos de edição
             current_op = ""
             if os.path.exists(path_op):
                 with open(path_op, "r") as f: current_op = f.read()
-            
             current_analysis = ""
             if os.path.exists(path_txt):
                 with open(path_txt, "r") as f: current_analysis = f.read()
-                
             edit_my_op = st.text_input("Editar Minha Abertura:", value=current_op)
             edit_analysis = st.text_area("Editar Análise Técnica:", value=current_analysis)
-            
             if st.button("ATUALIZAR REGISTRO"):
                 with open(path_op, "w") as f: f.write(edit_my_op)
                 with open(path_txt, "w") as f: f.write(edit_analysis)
