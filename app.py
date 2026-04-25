@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: DESIGN PREMIUM + LÓGICA DE HOVER NA ANÁLISE
+# 2. CSS: TOPO LIMPO + TÍTULO ATUALIZADO + LÓGICA DE HOVER
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -49,7 +49,7 @@ st.markdown("""
         font-size: 13px; display: inline-block; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;
     }
 
-    /* --- CONTAINER DA IMAGEM + LÓGICA DE HOVER --- */
+    /* CONTAINER DA IMAGEM + HOVER */
     .image-wrapper {
         position: relative;
         display: flex;
@@ -65,14 +65,13 @@ st.markdown("""
         transition: filter 0.3s ease;
     }
 
-    /* Esconde a caixa de análise por padrão */
     .hover-analysis {
         position: absolute;
         bottom: 0;
         background: rgba(0, 0, 0, 0.85);
         color: #D4AF37;
         width: 100%;
-        max-width: 58vh; /* Mesma largura aproximada do tabuleiro */
+        max-width: 58vh;
         padding: 20px;
         text-align: center;
         opacity: 0;
@@ -84,16 +83,10 @@ st.markdown("""
         backdrop-filter: blur(5px);
     }
 
-    /* Quando passar o mouse no wrapper da imagem, mostra a análise */
-    .image-wrapper:hover .hover-analysis {
-        opacity: 1;
-    }
-    
-    .image-wrapper:hover img {
-        filter: brightness(0.4); /* Escurece um pouco o tabuleiro para o texto brilhar */
-    }
+    .image-wrapper:hover .hover-analysis { opacity: 1; }
+    .image-wrapper:hover img { filter: brightness(0.4); }
 
-    /* SETAS CIRCULARES */
+    /* BOTÕES CIRCULARES */
     div.stButton > button {
         background-color: transparent !important;
         color: #444 !important;
@@ -113,7 +106,8 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 if 'idx' not in st.session_state: st.session_state.idx = 0
 
-st.markdown('<div class="header-container"><p class="header-text">Chess Strategy Lab // Sistema de Auditoria</p></div>', unsafe_allow_html=True)
+# TÍTULO ATUALIZADO CONFORME PEDIDO
+st.markdown('<div class="header-container"><p class="header-text">Chess Strategy Lab // Estudo de Aberturas</p></div>', unsafe_allow_html=True)
 
 imgs = [f for f in os.listdir(IMG_DIR) if f.endswith(".jpg")]
 imgs.sort()
@@ -124,10 +118,9 @@ if imgs:
     curr = imgs[st.session_state.idx]
     nome_exibicao = curr.split("_")[0].replace("-", " ")
     
-    st.markdown(f'<p class="record-counter">ESTUDO {st.session_state.idx + 1} DE {len(imgs)}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="record-counter">REGISTRO {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
     st.markdown(f'<div style="text-align:center"><span class="opening-tag">📂 {nome_exibicao}</span></div>', unsafe_allow_html=True)
 
-    # Lógica de Imagem e Análise (Texto só aparece no Hover)
     img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
     path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
     analise_texto = ""
@@ -135,7 +128,6 @@ if imgs:
         with open(path_txt, "r") as f:
             analise_texto = f.read()
 
-    # Montando o HTML com o efeito de Hover
     st.markdown(f"""
         <div class="image-wrapper">
             <img src="data:image/jpeg;base64,{img_64}">
@@ -160,9 +152,9 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
         opcoes = ["-- Selecione --"] + aberturas_existentes + ["[ + NOVA ]"]
         escolha = st.selectbox("Selecione a Abertura:", opcoes)
         nome_f = st.text_input("Nome da Variante:") if escolha == "[ + NOVA ]" else (escolha if escolha != "-- Selecione --" else "")
-        up_f = st.file_uploader("Captura da Posição:", type=["jpg", "png", "jpeg"])
-        up_t = st.text_area("Nota Técnica / Análise da Engine:")
-        if st.button("SALVAR NA BASE"): 
+        up_f = st.file_uploader("Captura:", type=["jpg", "png", "jpeg"])
+        up_t = st.text_area("Insight:")
+        if st.button("SALVAR"): 
             if up_f and up_t and nome_f:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 nome_limpo = nome_f.replace(" ", "-").strip()
@@ -172,13 +164,13 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
                 st.rerun()
     with t2:
         if imgs:
-            edt_t = st.text_area("Editar Análise:", value=analise_texto, key="edit_area")
+            edt_t = st.text_area("Editar Insight:", value=analise_texto, key="edit_area")
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("ATUALIZAR"):
                     with open(os.path.join(IMG_DIR, curr.replace(".jpg", ".txt")), "w") as f: f.write(edt_t); st.rerun()
             with c2:
-                if st.button("🗑️ ELIMINAR"):
+                if st.button("🗑️ DELETAR"):
                     os.remove(os.path.join(IMG_DIR, curr))
                     os.remove(os.path.join(IMG_DIR, curr.replace(".jpg", ".txt")))
                     st.session_state.idx = 0; st.rerun()
