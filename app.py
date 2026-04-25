@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: DESIGN HUD REFINADO
+# 2. CSS: DESIGN HUD E DISPLAYS DE DADOS
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -41,20 +41,16 @@ st.markdown("""
 
     .label-tech { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; font-weight: 600; }
     
-    /* INPUT DA MINHA ABERTURA */
-    .stTextInput input {
-        background-color: #0d0d0d !important;
-        color: #D4AF37 !important;
-        border: 1px solid #222 !important;
-        font-weight: 800 !important;
-        text-transform: uppercase !important;
-    }
-
-    .opp-box {
+    /* DISPLAYS FIXOS (Puxados da Base) */
+    .data-display-box {
         background: rgba(255, 255, 255, 0.03);
-        padding: 12px; border-radius: 6px; margin-bottom: 25px; border: 1px solid #222;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        border: 1px solid #1a1a1a;
     }
-    .opp-title { color: #eee; font-size: 14px; font-weight: 600; text-transform: uppercase; margin: 0; }
+    .my-line-text { color: #D4AF37; font-size: 18px; font-weight: 800; text-transform: uppercase; margin: 0; }
+    .opp-line-text { color: #eee; font-size: 14px; font-weight: 600; text-transform: uppercase; margin: 0; }
 
     .total-display { color: #333; font-size: 24px; font-weight: 900; margin-top: 5px; }
     .stNumberInput input { color: #D4AF37 !important; font-size: 32px !important; font-weight: 900 !important; }
@@ -90,9 +86,9 @@ if imgs:
         img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
         st.markdown(f'<div style="display:flex; justify-content:center;"><img src="data:image/jpeg;base64,{img_64}" style="max-width:85%; border-radius:4px; border:1px solid #222; box-shadow: 0 40px 100px rgba(0,0,0,1);"></div>', unsafe_allow_html=True)
 
-    # DIREITA: Painel de Controle
+    # DIREITA: Painel de Controle (Display de Dados)
     with col_right:
-        # Navegação X / Y
+        # Navegação
         st.markdown('<p class="label-tech">Navegação</p>', unsafe_allow_html=True)
         c_in, c_tot = st.columns([0.4, 1])
         with c_in: st.number_input("Pos", min_value=1, max_value=len(imgs), value=st.session_state.idx + 1, key="nav_input", on_change=handle_jump, label_visibility="collapsed")
@@ -101,25 +97,23 @@ if imgs:
         is_studied = st.session_state.studied_list.get(curr, False)
         st.markdown(f'<div class="status-badge {"status-studied" if is_studied else "status-awaiting"}">{"✓ Estudo Concluído" if is_studied else "⚠ Aguardando Estudo"}</div>', unsafe_allow_html=True)
 
-        # --- ARQUIVOS DE DADOS ---
+        # --- CARREGAMENTO DE DADOS DA BASE ---
         path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
-        path_op = os.path.join(IMG_DIR, curr.replace(".jpg", "_op.txt")) # Novo arquivo só para o nome da abertura
+        path_op = os.path.join(IMG_DIR, curr.replace(".jpg", "_op.txt"))
         
-        # Carrega a abertura se existir
-        op_val = ""
+        my_opening = "NÃO INFORMADA"
         if os.path.exists(path_op):
-            with open(path_op, "r") as f: op_val = f.read()
+            with open(path_op, "r") as f: my_opening = f.read()
 
-        # CAMPO PARA VOCÊ PREENCHER DEPOIS
-        st.markdown('<p class="label-tech">Minha Abertura</p>', unsafe_allow_html=True)
-        nova_op = st.text_input("Abertura:", value=op_val, key=f"op_in_{curr}", label_visibility="collapsed")
-        if nova_op != op_val:
-            with open(path_op, "w") as f: f.write(nova_op)
-            st.rerun()
+        # EXIBIÇÃO FIXA: MINHA ABERTURA
+        st.markdown('<p class="label-tech">Minha Abertura (Base)</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="data-display-box" style="border-left: 3px solid #D4AF37;"><p class="my-line-text">{my_opening}</p></div>', unsafe_allow_html=True)
 
-        st.markdown('<p class="label-tech">Resposta do Adversário</p>', unsafe_allow_html=True)
-        st.markdown(f'<div class="opp-box"><p class="opp-title">{curr.split("_")[0].replace("-", " ")}</p></div>', unsafe_allow_html=True)
+        # EXIBIÇÃO FIXA: RESPOSTA DO ADVERSÁRIO
+        st.markdown('<p class="label-tech">Variante do Adversário (Base)</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="data-display-box"><p class="opp-line-text">{curr.split("_")[0].replace("-", " ")}</p></div>', unsafe_allow_html=True)
 
+        # Navegação Sequencial
         c_p, c_n = st.columns(2)
         with c_p: 
             if st.button("‹ VOLTAR"): st.session_state.idx -= 1; st.rerun()
@@ -136,18 +130,39 @@ if imgs:
                 with open(path_txt, "r") as f:
                     st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color:#bbb; font-size:14px; line-height:1.6;">{f.read()}</div>', unsafe_allow_html=True)
 
-# 3. GESTÃO
+# 3. GESTÃO INTEGRADA
 st.write("")
-with st.expander("⚙️ BASE DE DADOS"):
-    t1, t2 = st.tabs(["NOVO REGISTRO", "EXCLUIR"])
+with st.expander("⚙️ BASE DE DADOS (CADASTRAR / EDITAR)"):
+    t1, t2 = st.tabs(["NOVO REGISTRO", "EDITAR ATUAL"])
     with t1:
-        adv_var = st.text_input("Variante do Adversário:")
+        new_my_op = st.text_input("Sua Abertura (ex: Taimanov):")
+        new_adv_var = st.text_input("Variante do Adversário:")
         u_f = st.file_uploader("Screenshot:", type=["jpg", "png"])
         u_t = st.text_area("Análise Técnica:")
-        if st.button("SALVAR"):
-            if adv_var and u_f and u_t:
+        if st.button("SALVAR NA BASE"):
+            if new_my_op and new_adv_var and u_f and u_t:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                fn = f"{adv_var.replace(' ', '-')}_{ts}"
+                fn = f"{new_adv_var.replace(' ', '-')}_{ts}"
                 with open(os.path.join(IMG_DIR, f"{fn}.jpg"), "wb") as f: f.write(u_f.getbuffer())
                 with open(os.path.join(IMG_DIR, f"{fn}.txt"), "w") as f: f.write(u_t)
+                with open(os.path.join(IMG_DIR, f"{fn}_op.txt"), "w") as f: f.write(new_my_op)
+                st.rerun()
+    with t2:
+        if imgs:
+            st.write(f"Editando: {curr}")
+            # Puxar dados atuais para os campos de edição
+            current_op = ""
+            if os.path.exists(path_op):
+                with open(path_op, "r") as f: current_op = f.read()
+            
+            current_analysis = ""
+            if os.path.exists(path_txt):
+                with open(path_txt, "r") as f: current_analysis = f.read()
+                
+            edit_my_op = st.text_input("Editar Minha Abertura:", value=current_op)
+            edit_analysis = st.text_area("Editar Análise Técnica:", value=current_analysis)
+            
+            if st.button("ATUALIZAR REGISTRO"):
+                with open(path_op, "w") as f: f.write(edit_my_op)
+                with open(path_txt, "w") as f: f.write(edit_analysis)
                 st.rerun()
