@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: ALINHAMENTO POR FLEXBOX (FORÇA BRUTA)
+# 2. CSS: CENTRALIZAÇÃO ABSOLUTA VIA FLEXBOX
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -40,45 +40,49 @@ st.markdown("""
         font-size: 13px; display: inline-block; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;
     }
 
+    /* CONTAINER DA IMAGEM */
     .img-display-container { display: flex; justify-content: center; margin-bottom: 20px; }
     .img-display-container img { max-height: 58vh; border: 1px solid #222; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,1); }
 
-    /* --- BOTÃO REVELAR (RETÂNGULO CENTRAL) --- */
+    /* --- ESTILO DO BOTÃO REVELAR (CENTRALIZADO) --- */
     div.stButton > button[kind="secondary"] {
         display: block !important;
-        margin: 0 auto !important;
+        margin: 0 auto 15px auto !important;
         width: 320px !important;
         height: 48px !important;
         border-radius: 4px !important;
         background-color: #111 !important;
         color: #D4AF37 !important;
         border: 1px solid #222 !important;
+        text-transform: uppercase !important;
+        font-weight: bold !important;
     }
 
-    /* --- SETAS DE NAVEGAÇÃO (CÍRCULOS ALINHADOS) --- */
-    /* Forçamos o container das colunas a não quebrar */
+    /* --- CONTAINER DE NAVEGAÇÃO (FORÇANDO CENTRO) --- */
+    /* Esse seletor ataca o div que o Streamlit cria para as colunas */
     [data-testid="column"] {
         display: flex !important;
         justify-content: center !important;
-        align-items: center !important;
+        width: 100% !important;
     }
 
-    [data-testid="column"] div.stButton > button {
+    /* SETAS DE NAVEGAÇÃO */
+    .nav-btn-container div.stButton > button {
         background-color: transparent !important;
         color: #666 !important;
         border: 1px solid #1A1A1A !important;
         height: 55px !important;
         width: 55px !important;
         border-radius: 50% !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        font-size: 24px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        margin: 0 10px !important; /* Espaçamento entre as setas */
     }
-    [data-testid="column"] div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
+    .nav-btn-container div.stButton > button:hover { border-color: #D4AF37 !important; color: #D4AF37 !important; }
 
-    /* CAIXA DE ANÁLISE REVELADA */
+    /* ANÁLISE REVELADA */
     .revealed-box {
         background-color: #0A0A0A; padding: 25px; border-left: 3px solid #D4AF37;
         text-align: center; max-width: 650px; margin: 25px auto; color: #BBB;
@@ -125,20 +129,26 @@ if imgs:
             with open(path_txt, "r") as f: conteudo = f.read()
             st.markdown(f'<div class="revealed-box"><b>INSIGHT TÉCNICO:</b><br>{conteudo}</div>', unsafe_allow_html=True)
 
-    # 3. NAVEGAÇÃO (SETAS CENTRALIZADAS)
-    st.write("")
-    # Reduzi o número de colunas vazias para as setas não "fugirem" para as pontas
-    _, nav_col1, nav_col2, _ = st.columns([1.5, 0.15, 0.15, 1.5])
-    with nav_col1:
+    # 3. NAVEGAÇÃO (SETAS CENTRALIZADAS COM CSS FIXO)
+    st.markdown('<div class="nav-btn-container">', unsafe_allow_html=True)
+    col_l, col_r = st.columns([1, 1])
+    with col_l:
+        # Puxamos o botão para a direita da coluna da esquerda
+        st.markdown('<div style="display: flex; justify-content: flex-end;">', unsafe_allow_html=True)
         if st.button("‹", key="prev"):
             st.session_state.idx = (st.session_state.idx - 1) % len(imgs)
             st.session_state.revelar = False
             st.rerun()
-    with nav_col2:
+        st.markdown('</div>', unsafe_allow_html=True)
+    with col_r:
+        # Puxamos o botão para a esquerda da coluna da direita
+        st.markdown('<div style="display: flex; justify-content: flex-start;">', unsafe_allow_html=True)
         if st.button("›", key="next"):
             st.session_state.idx = (st.session_state.idx + 1) % len(imgs)
             st.session_state.revelar = False
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # 4. GESTÃO
 st.write("")
@@ -147,9 +157,9 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
     with t1:
         opcoes = ["-- Selecione --"] + aberturas_existentes + ["[ + NOVA ]"]
         escolha = st.selectbox("Abertura:", opcoes)
-        nome_f = st.text_input("Nome Variante:") if escolha == "[ + NOVA ]" else (escolha if escolha != "-- Selecione --" else "")
+        nome_f = st.text_input("Nome:") if escolha == "[ + NOVA ]" else (escolha if escolha != "-- Selecione --" else "")
         up_f = st.file_uploader("Upload:", type=["jpg", "png", "jpeg"])
-        up_t = st.text_area("Nota:")
+        up_t = st.text_area("Análise:")
         if st.button("SALVAR NA BASE"): 
             if up_f and up_t and nome_f:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -165,12 +175,12 @@ with st.expander("⚙️ GESTÃO DA BASE DE DADOS"):
             if os.path.exists(path_txt_edit):
                 with open(path_txt_edit, "r") as f: txt_atual = f.read()
             edt_t = st.text_area("Editar:", value=txt_atual, key="edit_area")
-            c1, c2 = st.columns(2)
-            with c1:
+            c_ed1, c_ed2 = st.columns(2)
+            with c_ed1:
                 if st.button("ATUALIZAR"):
                     with open(path_txt_edit, "w") as f: f.write(edt_t); st.rerun()
-            with c2:
-                if st.button("🗑️ DELETAR REGISTRO"):
+            with c_ed2:
+                if st.button("🗑️ DELETAR"):
                     if os.path.exists(os.path.join(IMG_DIR, curr)): os.remove(os.path.join(IMG_DIR, curr))
                     if os.path.exists(path_txt_edit): os.remove(path_txt_edit)
                     st.session_state.idx = 0; st.rerun()
