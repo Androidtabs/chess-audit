@@ -126,4 +126,50 @@ if imgs:
         if st.toggle("REVELAR ANÁLISE DA ABERTURA", value=False):
             if os.path.exists(path_txt):
                 with open(path_txt, "r") as f:
-                    st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color
+                    st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color:#bbb; font-size:14px; line-height:1.6;">{f.read()}</div>', unsafe_allow_html=True)
+
+# 3. GESTÃO INTEGRADA
+st.write("---")
+with st.expander("⚙️ BASE DE DADOS"):
+    t1, t2 = st.tabs(["NOVO REGISTRO", "EDITAR ATUAL"])
+    with t1:
+        new_my_op = st.text_input("Sua Abertura:")
+        new_adv_var = st.text_input("Variante do Adversário:")
+        u_f = st.file_uploader("Screenshot:", type=["jpg", "png"], key="upload_new")
+        u_t = st.text_area("Análise Técnica:")
+        if st.button("SALVAR REGISTRO"):
+            if new_my_op and new_adv_var and u_f and u_t:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                fn = f"{new_adv_var.replace(' ', '-')}_{ts}"
+                with open(os.path.join(IMG_DIR, f"{fn}.jpg"), "wb") as f: f.write(u_f.getbuffer())
+                with open(os.path.join(IMG_DIR, f"{fn}.txt"), "w") as f: f.write(u_t)
+                with open(os.path.join(IMG_DIR, f"{fn}_op.txt"), "w") as f: f.write(new_my_op)
+                st.rerun()
+    with t2:
+        if imgs:
+            st.write(f"Editando: `{curr}`")
+            e_my_op = st.text_input("Minha Abertura:", value=my_opening)
+            e_adv_var = st.text_input("Variante Adversário:", value=curr.split("_")[0].replace("-", " "))
+            e_img = st.file_uploader("Trocar Imagem:", type=["jpg", "png"])
+            curr_an = ""
+            if os.path.exists(path_txt):
+                with open(path_txt, "r") as f: curr_an = f.read()
+            e_an = st.text_area("Análise:", value=curr_an)
+            
+            if st.button("ATUALIZAR"):
+                # Lógica de renomear e salvar (MANTIDA)
+                new_prefix = e_adv_var.replace(" ", "-")
+                old_prefix = curr.split("_")[0]
+                t_curr = curr
+                if new_prefix != old_prefix:
+                    ts = curr.split("_", 1)[1]
+                    new_n = f"{new_prefix}_{ts}"
+                    os.rename(path_jpg, os.path.join(IMG_DIR, new_n))
+                    os.rename(path_txt, os.path.join(IMG_DIR, new_n.replace(".jpg", ".txt")))
+                    os.rename(path_op, os.path.join(IMG_DIR, new_n.replace(".jpg", "_op.txt")))
+                    t_curr = new_n
+                if e_img:
+                    with open(os.path.join(IMG_DIR, t_curr), "wb") as f: f.write(e_img.getbuffer())
+                with open(os.path.join(IMG_DIR, t_curr.replace(".jpg", "_op.txt")), "w") as f: f.write(e_my_op)
+                with open(os.path.join(IMG_DIR, t_curr.replace(".jpg", ".txt")), "w") as f: f.write(e_an)
+                st.rerun()
