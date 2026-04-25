@@ -12,7 +12,7 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: DESIGN TÁTICO
+# 2. CSS: DESIGN TÁTICO STRATEGY0x
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
@@ -30,7 +30,8 @@ st.markdown("""
     .opp-line-text { color: #eee; font-size: 14px; font-weight: 600; text-transform: uppercase; margin: 0; }
     .total-display { color: #333; font-size: 24px; font-weight: 900; margin-top: 5px; }
 
-    .stNumberInput div[data-baseweb="input"] { background-color: transparent !important; border: none !important; width: 80px !important; }
+    /* Number Input Custom */
+    .stNumberInput div[data-baseweb="input"] { background-color: transparent !important; border: none !important; width: 100px !important; }
     .stNumberInput input { color: #D4AF37 !important; font-size: 32px !important; font-weight: 900 !important; padding: 0 !important; }
 
     .status-badge { padding: 6px 12px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 15px; }
@@ -38,7 +39,7 @@ st.markdown("""
     .status-awaiting { background-color: rgba(255, 50, 50, 0.1); color: #FF3232; border: 1px solid #FF3232; }
 
     .stButton > button { width: 100% !important; background-color: #1a1a1a !important; color: #eee !important; border: 1px solid #333 !important; border-radius: 20px !important; height: 40px !important;}
-    .stButton > button:disabled { background-color: #080808 !important; color: #222 !important; border-color: #111 !important; opacity: 0.3; }
+    .stButton > button:disabled { opacity: 0.2; }
     
     footer {visibility: hidden;}
     </style>
@@ -48,36 +49,42 @@ IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
 imgs = [f for f in sorted(os.listdir(IMG_DIR)) if f.endswith(".jpg")]
 
-# Controle de Sessão
+# --- INICIALIZAÇÃO DE ESTADOS ---
 if 'idx' not in st.session_state: st.session_state.idx = 0
 if 'studied_list' not in st.session_state: st.session_state.studied_list = {}
 
+# Título do Projeto
 st.markdown('<div class="custom-header"><h1>Chess Strategy Lab // Estudo de Aberturas</h1></div>', unsafe_allow_html=True)
+
 col_left, col_right = st.columns([1.5, 1], gap="large")
 
 if imgs:
-    # Função para quando você digita o número manualmente
-    def jump_to_pos():
-        # O valor digitado vira o novo idx (ajustado para 0-index)
-        st.session_state.idx = st.session_state.new_pos - 1
+    # Ajuste de segurança do índice
+    if st.session_state.idx >= len(imgs): st.session_state.idx = len(imgs) - 1
+    if st.session_state.idx < 0: st.session_state.idx = 0
+
+    # FUNÇÃO DE SALTO (Quando você digita o número)
+    def jump_logic():
+        st.session_state.idx = st.session_state.jump_input - 1
 
     curr = imgs[st.session_state.idx]
     path_jpg = os.path.join(IMG_DIR, curr)
     path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
     path_op = os.path.join(IMG_DIR, curr.replace(".jpg", "_op.txt"))
 
+    # ESQUERDA: Tabuleiro
     with col_left:
         img_64 = get_image_base64(path_jpg)
         st.markdown(f'<div style="display:flex; justify-content:center;"><img src="data:image/jpeg;base64,{img_64}" style="max-width:85%; border-radius:4px; border:1px solid #222; box-shadow: 0 40px 100px rgba(0,0,0,1);"></div>', unsafe_allow_html=True)
 
+    # DIREITA: Painel HUD
     with col_right:
-        # NAVEGAÇÃO
         st.markdown('<p class="label-tech">Navegação</p>', unsafe_allow_html=True)
         c_in, c_tot = st.columns([0.4, 1])
         with c_in:
-            # Aqui está o segredo: o 'value' depende do idx, mas não forçamos a key manualmente no código
+            # Widget de número
             st.number_input("Pos", min_value=1, max_value=len(imgs), value=st.session_state.idx + 1, 
-                            key="new_pos", on_change=jump_to_pos, label_visibility="collapsed")
+                            key="jump_input", on_change=jump_logic, label_visibility="collapsed")
         with c_tot:
             st.markdown(f'<div class="total-display">/ {len(imgs)}</div>', unsafe_allow_html=True)
 
@@ -95,15 +102,19 @@ if imgs:
         st.markdown('<p class="label-tech">Variante do Adversário</p>', unsafe_allow_html=True)
         st.markdown(f'<div class="data-display-box"><p class="opp-line-text">{curr.split("_")[0].replace("-", " ")}</p></div>', unsafe_allow_html=True)
 
-        # BOTÕES: Apenas atualizam o IDX e dão rerun
+        # --- BOTÕES DE NAVEGAÇÃO ---
         c_p, c_n = st.columns(2)
         with c_p: 
             if st.button("‹ VOLTAR", disabled=(st.session_state.idx <= 0)):
                 st.session_state.idx -= 1
+                # Truque para sincronizar o input: removemos o valor da memória para ele ler o novo 'value'
+                if "jump_input" in st.session_state: del st.session_state["jump_input"]
                 st.rerun()
         with c_n: 
             if st.button("AVANÇAR ›", disabled=(st.session_state.idx >= len(imgs) - 1)):
                 st.session_state.idx += 1
+                # Truque para sincronizar o input
+                if "jump_input" in st.session_state: del st.session_state["jump_input"]
                 st.rerun()
 
         st.write("")
@@ -115,48 +126,4 @@ if imgs:
         if st.toggle("REVELAR ANÁLISE DA ABERTURA", value=False):
             if os.path.exists(path_txt):
                 with open(path_txt, "r") as f:
-                    st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color:#bbb; font-size:14px; line-height:1.6;">{f.read()}</div>', unsafe_allow_html=True)
-
-# 3. GESTÃO (TUDO EM UM LUGAR)
-st.write("---")
-with st.expander("⚙️ BASE DE DADOS"):
-    t1, t2 = st.tabs(["NOVO REGISTRO", "EDITAR ATUAL"])
-    with t1:
-        new_my_op = st.text_input("Sua Abertura:")
-        new_adv_var = st.text_input("Variante do Adversário:")
-        u_f = st.file_uploader("Screenshot:", type=["jpg", "png"], key="new_u")
-        u_t = st.text_area("Análise Técnica:")
-        if st.button("SALVAR"):
-            if new_my_op and new_adv_var and u_f and u_t:
-                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                fn = f"{new_adv_var.replace(' ', '-')}_{ts}"
-                with open(os.path.join(IMG_DIR, f"{fn}.jpg"), "wb") as f: f.write(u_f.getbuffer())
-                with open(os.path.join(IMG_DIR, f"{fn}.txt"), "w") as f: f.write(u_t)
-                with open(os.path.join(IMG_DIR, f"{fn}_op.txt"), "w") as f: f.write(new_my_op)
-                st.rerun()
-    with t2:
-        if imgs:
-            st.write(f"Editando: `{curr}`")
-            e_my_op = st.text_input("Sua Abertura:", value=my_opening, key="e_op")
-            e_adv_var = st.text_input("Variante Adversário:", value=curr.split("_")[0].replace("-", " "), key="e_adv")
-            e_img = st.file_uploader("Trocar Imagem (opcional):", type=["jpg", "png"], key="e_img")
-            curr_an = ""
-            if os.path.exists(path_txt):
-                with open(path_txt, "r") as f: curr_an = f.read()
-            e_an = st.text_area("Análise:", value=curr_an, key="e_an")
-            if st.button("ATUALIZAR BASE"):
-                new_prefix = e_adv_var.replace(" ", "-")
-                old_prefix = curr.split("_")[0]
-                target_curr = curr
-                if new_prefix != old_prefix:
-                    ts = curr.split("_", 1)[1]
-                    new_name = f"{new_prefix}_{ts}"
-                    os.rename(path_jpg, os.path.join(IMG_DIR, new_name))
-                    os.rename(path_txt, os.path.join(IMG_DIR, new_name.replace(".jpg", ".txt")))
-                    os.rename(path_op, os.path.join(IMG_DIR, new_name.replace(".jpg", "_op.txt")))
-                    target_curr = new_name
-                if e_img:
-                    with open(os.path.join(IMG_DIR, target_curr), "wb") as f: f.write(e_img.getbuffer())
-                with open(os.path.join(IMG_DIR, target_curr.replace(".jpg", "_op.txt")), "w") as f: f.write(e_my_op)
-                with open(os.path.join(IMG_DIR, target_curr.replace(".jpg", ".txt")), "w") as f: f.write(e_an)
-                st.rerun()
+                    st.markdown(f'<div style="background:rgba(0,0,0,0.4); padding:20px; border-left:2px solid #D4AF37; color
