@@ -3,7 +3,7 @@ import os
 import base64
 from datetime import datetime
 
-# 1. CONFIGURAÇÃO BASE
+# 1. CONFIGURAÇÃO DE TELA
 st.set_page_config(page_title="Audit Protocol", layout="wide", initial_sidebar_state="collapsed")
 
 def get_image_base64(path):
@@ -12,70 +12,74 @@ def get_image_base64(path):
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# 2. CSS: FOCO EM ESTABILIDADE E ALINHAMENTO
+# 2. CSS: DESIGN DE DASHBOARD TÉCNICO
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display: none !important;}
-    .stApp { margin-top: -85px !important; }
+    .stApp { margin-top: -80px !important; background-color: #050505 !important; }
     
-    html, body, [class*="css"] { 
-        background-color: #080808 !important; 
-        color: #E0E0E0 !important; 
-        font-family: 'Inter', sans-serif; 
+    /* REMOVE PADDING PADRÃO */
+    .main .block-container { padding: 2rem !important; max-width: 1400px !important; }
+
+    /* ESTILO DO PAINEL LATERAL DE CONTROLE */
+    .control-panel {
+        background-color: #0f0f0f;
+        padding: 25px;
+        border-radius: 8px;
+        border: 1px solid #1a1a1a;
+        height: fit-content;
     }
 
-    /* TITULO */
-    .header-box {
-        text-align: center;
-        padding: 20px 0;
-        border-bottom: 1px solid #1a1a1a;
-        margin-bottom: 20px;
-    }
-    .header-box h1 {
-        font-size: 12px;
-        color: #444;
+    .label-tech {
+        font-size: 10px;
+        color: #555;
         text-transform: uppercase;
-        letter-spacing: 5px;
+        letter-spacing: 2px;
+        margin-bottom: 5px;
     }
 
-    /* TABULEIRO */
-    .board-img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        max-height: 60vh;
-        border: 1px solid #222;
+    .opening-title {
+        color: #D4AF37;
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+
+    /* IMAGEM DO TABULEIRO */
+    .board-frame img {
+        width: 100%;
         border-radius: 4px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        border: 1px solid #1a1a1a;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     }
 
-    /* CENTRALIZAÇÃO DOS BOTÕES */
+    /* AJUSTE NOS BOTÕES NATIVOS PARA O LADO DIREITO */
     .stButton > button {
         width: 100% !important;
-        background-color: #111 !important;
-        color: #D4AF37 !important;
-        border: 1px solid #222 !important;
-        border-radius: 4px !important;
-        height: 45px !important;
-        font-weight: bold !important;
-        text-transform: uppercase !important;
-        font-size: 12px !important;
+        background-color: #1a1a1a !important;
+        color: #eee !important;
+        border: 1px solid #333 !important;
+        height: 40px !important;
+        transition: 0.3s;
     }
     .stButton > button:hover {
         border-color: #D4AF37 !important;
-        background-color: #161616 !important;
+        color: #D4AF37 !important;
     }
 
-    /* TEXTO DA ANÁLISE */
-    .analysis-container {
-        background-color: #0a0a0a;
+    /* CAIXA DE INSIGHT */
+    .insight-card {
+        background-color: #080808;
+        border-left: 2px solid #D4AF37;
         padding: 20px;
-        border-left: 3px solid #D4AF37;
         margin-top: 20px;
-        text-align: center;
         color: #999;
-        font-size: 15px;
+        font-size: 14px;
+        line-height: 1.6;
+        animation: slideIn 0.4s ease;
     }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 
     footer {visibility: hidden;}
     </style>
@@ -83,76 +87,71 @@ st.markdown("""
 
 IMG_DIR = "jogadas"
 if not os.path.exists(IMG_DIR): os.makedirs(IMG_DIR)
-if 'idx' not in st.session_state: st.session_state.idx = 0
-if 'revelar' not in st.session_state: st.session_state.revelar = False
 
-# Layout do Topo
-st.markdown('<div class="header-box"><h1>CHESS STRATEGY LAB</h1></div>', unsafe_allow_html=True)
-
+# Inicialização de Estados
 imgs = [f for f in sorted(os.listdir(IMG_DIR)) if f.endswith(".jpg")]
+if 'idx' not in st.session_state: st.session_state.idx = 0
+
+# --- LAYOUT PRINCIPAL (COLUNAS) ---
+col_board, col_ctrl = st.columns([2, 1], gap="large")
 
 if imgs:
     curr = imgs[st.session_state.idx % len(imgs)]
+    nome_abertura = curr.split("_")[0].replace("-", " ").upper()
     
-    # Nome da Abertura
-    st.markdown(f'<p style="text-align:center; color:#D4AF37; font-weight:bold; letter-spacing:1px;">📂 {curr.split("_")[0].replace("-", " ").upper()}</p>', unsafe_allow_html=True)
+    # ESQUERDA: O TABULEIRO
+    with col_board:
+        img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
+        st.markdown(f'<div class="board-frame"><img src="data:image/jpeg;base64,{img_64}"></div>', unsafe_allow_html=True)
 
-    # Imagem
-    img_64 = get_image_base64(os.path.join(IMG_DIR, curr))
-    st.markdown(f'<img src="data:image/jpeg;base64,{img_64}" class="board-img">', unsafe_allow_html=True)
-    
-    st.write("") # Espaçador
-
-    # NAVEGAÇÃO (3 COLUNAS SIMPLES E ESTÁVEIS)
-    c1, c2, c3 = st.columns([1, 2, 1])
-    
-    with c1:
-        if st.button("‹ ANTERIOR"):
-            st.session_state.idx -= 1
-            st.session_state.revelar = False
-            st.rerun()
-            
-    with c2:
-        label = "REVELAR ANÁLISE" if not st.session_state.revelar else "OCULTAR"
-        if st.button(label):
-            st.session_state.revelar = not st.session_state.revelar
-            st.rerun()
+    # DIREITA: PAINEL DE CONTROLE
+    with col_ctrl:
+        st.markdown('<p class="label-tech">Protocolo de Auditoria</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="opening-title">{nome_abertura}</div>', unsafe_allow_html=True)
         
-    with c3:
-        if st.button("PRÓXIMO ›"):
-            st.session_state.idx += 1
-            st.session_state.revelar = False
-            st.rerun()
-
-    # Mostrar Análise
-    if st.session_state.revelar:
-        path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
-        if os.path.exists(path_txt):
-            with open(path_txt, "r") as f:
-                st.markdown(f'<div class="analysis-container">{f.read()}</div>', unsafe_allow_html=True)
-
-# GESTÃO
-st.write("---")
-with st.expander("⚙️ GESTÃO DE DADOS"):
-    aberturas_existentes = sorted(list(set([f.split("_")[0].replace("-", " ") for f in imgs])))
-    t1, t2 = st.tabs(["➕ NOVO", "📝 EDITAR"])
-    with t1:
-        escolha = st.selectbox("Abertura:", ["-- Selecione --"] + aberturas_existentes + ["[ + NOVA ]"])
-        n_f = st.text_input("Variante:") if escolha == "[ + NOVA ]" else (escolha if escolha != "-- Selecione --" else "")
-        u_f = st.file_uploader("Imagem:", type=["jpg", "png", "jpeg"])
-        u_t = st.text_area("Análise:")
-        if st.button("SALVAR REGISTRO"): 
-            if u_f and u_t and n_f:
-                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                with open(os.path.join(IMG_DIR, f"{n_f.replace(' ', '-')}_{ts}.jpg"), "wb") as f: f.write(u_f.getbuffer())
-                with open(os.path.join(IMG_DIR, f"{n_f.replace(' ', '-')}_{ts}.txt"), "w") as f: f.write(u_t)
+        st.markdown('<p class="label-tech">Navegação</p>', unsafe_allow_html=True)
+        
+        # Botões de navegação verticais ou lado a lado no painel
+        c_nav1, c_nav2 = st.columns(2)
+        with c_nav1:
+            if st.button("‹ ANTERIOR", key="p"):
+                st.session_state.idx -= 1
                 st.rerun()
-    with t2:
-        if imgs:
-            path_txt_edit = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
-            txt_at = ""
-            if os.path.exists(path_txt_edit):
-                with open(path_txt_edit, "r") as f: txt_at = f.read()
-            edt_t = st.text_area("Editar Análise:", value=txt_at)
-            if st.button("ATUALIZAR"):
-                with open(path_txt_edit, "w") as f: f.write(edt_t); st.rerun()
+        with c_nav2:
+            if st.button("PRÓXIMO ›", key="n"):
+                st.session_state.idx += 1
+                st.rerun()
+
+        st.write("")
+        st.markdown('<p class="label-tech">Insights de Engine</p>', unsafe_allow_html=True)
+        
+        # O "REVELAR" agora é um Checkbox Estilizado (Toggle)
+        revelar = st.toggle("ATIVAR ANÁLISE TÉCNICA", value=False)
+        
+        if revelar:
+            path_txt = os.path.join(IMG_DIR, curr.replace(".jpg", ".txt"))
+            if os.path.exists(path_txt):
+                with open(path_txt, "r") as f:
+                    conteudo = f.read()
+                st.markdown(f'<div class="insight-card">{conteudo}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="insight-card">Sem análise cadastrada.</div>', unsafe_allow_html=True)
+
+        st.write("")
+        st.markdown(f'<p style="color:#333; font-size:10px;">REGISTRO ID: {st.session_state.idx + 1} / {len(imgs)}</p>', unsafe_allow_html=True)
+
+# 4. GESTÃO (DISCRETA NO FINAL)
+st.write("---")
+with st.expander("⚙️ GERENCIAR BASE DE DADOS"):
+    t1, t2 = st.tabs(["CADASTRAR", "EDITAR"])
+    with t1:
+        n_f = st.text_input("Nome da Variante:")
+        u_f = st.file_uploader("Imagem:", type=["jpg", "png"])
+        u_t = st.text_area("Texto da Análise:")
+        if st.button("SALVAR"):
+            if n_f and u_f and u_t:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                base = os.path.join(IMG_DIR, f"{n_f.replace(' ', '-')}_{ts}")
+                with open(f"{base}.jpg", "wb") as f: f.write(u_f.getbuffer())
+                with open(f"{base}.txt", "w") as f: f.write(u_t)
+                st.rerun()
